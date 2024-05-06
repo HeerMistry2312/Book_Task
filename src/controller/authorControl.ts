@@ -1,9 +1,8 @@
 import { Request, Response } from "express";
 import { AuthorService } from "../service/authorService";
-import { Types } from "mongoose";
 import { AuthReq } from "../middleware/authentication";
 import { BaseError, InternalServerError, BadRequestError, ErrorHandler } from '../error/errorHandler';
-
+import { paginate } from "./pagination";
 export class authorControl {
     public static async createBook(req: Request, res: Response): Promise<void> {
         try {
@@ -63,8 +62,12 @@ export class authorControl {
     public static async showMyBooks(req: Request, res: Response): Promise<void> {
         try {
             const author = (req as AuthReq).id!.toString()
+            const page = parseInt(req.query.page as string) || 1;
+            const limit = parseInt(req.query.limit as string) || 10;
             const myBooks = await AuthorService.ShowMyBooks(author)
-            res.status(200).send(myBooks)
+            const data = [myBooks]
+            const paginatedBooks = paginate(data, page, limit);
+            res.status(200).send(paginatedBooks)
         } catch (error: any) {
             const customError: BaseError = ErrorHandler.handleError(error);
             res.status(customError.statusCode).json({
