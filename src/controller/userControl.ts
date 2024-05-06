@@ -2,7 +2,7 @@ import { Request, Response } from "express";
 import { UserService } from "../service/userService";
 import { Types } from "mongoose";
 import { AuthReq } from "../middleware/authentication";
-
+import { BaseError, InternalServerError, BadRequestError, ErrorHandler } from '../error/errorHandler';
 export class userControl {
 
 
@@ -12,10 +12,14 @@ export class userControl {
 
             let newUser = await UserService.SignUp(username, password, email, role)
 
-            res.status(200).send({ data: `${newUser} Register Sucessfully` })
+            res.status(200).send(newUser)
         } catch (error: any) {
-            console.log("error ma chhu")
-            res.send({ messgae: error })
+            const customError: BaseError = ErrorHandler.handleError(error);
+            res.status(customError.statusCode).json({
+                error: {
+                    message: customError.message
+                }
+            });
         }
     }
 
@@ -28,12 +32,17 @@ export class userControl {
             if (user) {
                 sessionUser.user = user
                 console.log(sessionUser.user)
-                res.status(200).send({ message: "User logged in successfully", data: user });
+                res.status(200).send(user);
             } else {
-                res.status(401).send({ message: "Invalid username or password" });
+                throw new InternalServerError('Incorrect Credentials');
             }
         } catch (error: any) {
-            res.send({ messgae: error })
+            const customError: BaseError = ErrorHandler.handleError(error);
+            res.status(customError.statusCode).json({
+                error: {
+                    message: customError.message
+                }
+            });
         }
     }
 
@@ -43,15 +52,18 @@ export class userControl {
             await UserService.Logout(id);
             req.session.destroy((err) => {
                 if (err) {
-                    console.error('Error destroying session:', err);
-                    return res.status(500).json({ error: 'Failed to logout' });
+                    throw new InternalServerError('Failed To logout');
                 }
                 res.status(200).json({ message: 'Logout successful' });
             });
 
-        } catch (error) {
-            console.error('Error in logout:', error);
-            res.status(500).json({ error: 'Failed to logout' });
+        } catch (error: any) {
+            const customError: BaseError = ErrorHandler.handleError(error);
+            res.status(customError.statusCode).json({
+                error: {
+                    message: customError.message
+                }
+            });
         }
     }
 

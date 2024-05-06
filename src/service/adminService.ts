@@ -1,17 +1,15 @@
-import { Role } from './../model/userModel';
+import { InternalServerError } from '../error/errorHandler';
 import User, { UserInterface } from "../model/userModel";
 import Book from '../model/bookModel';
-import jwt from "jsonwebtoken";
-import bcrypt from "bcrypt";
-import { Types } from "mongoose";
+
 export class AdminService {
     public static async ApproveAuthor(id: string): Promise<object> {
         let user = await User.findByIdAndUpdate(id)
         if (!user) {
-            return { message: "User Not Found" }
+            throw new InternalServerError('User not Found');
         }
         if (user.role !== 'author') {
-            return { message: "user not registered as author" }
+            throw new InternalServerError('User Not Register as Author');
         }
         return { data: user }
     }
@@ -20,10 +18,10 @@ export class AdminService {
     public static async ApproveAdmin(id: string): Promise<object> {
         let user = await User.findByIdAndUpdate(id, { isApproved: true })
         if (!user) {
-            return { message: "User Not Found" }
+            throw new InternalServerError('User not Found');
         }
         if (user.role !== 'admin') {
-            return { message: "user not registered as admin" }
+            throw new InternalServerError('User Not Register as Admin');
         }
         return { data: user }
     }
@@ -39,7 +37,7 @@ export class AdminService {
     public static async UpdateBook(id: string, body: object): Promise<object> {
         let update = await Book.findByIdAndUpdate(id, body, { new: true })
         if (!update) {
-            return { message: "Book Not Found" }
+            throw new InternalServerError('Book Not Found');
         }
         return { message: "Update Success", data: update }
     }
@@ -48,7 +46,7 @@ export class AdminService {
     public static async DeleteBook(id: string): Promise<object> {
         const book = await Book.findByIdAndDelete({ _id: id })
         if (!book) {
-            return { message: "Book Not FOund" }
+            throw new InternalServerError('Book Not Found');
         }
         return { message: "Delete Success", data: book }
     }

@@ -1,7 +1,8 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import { Types } from "mongoose";
-
+import { SECRET_KEY } from "../config/config";
+import { BaseError, InternalServerError, BadRequestError, ErrorHandler } from '../error/errorHandler';
 export interface AuthReq extends Request {
     id?: Types.ObjectId,
     role?: string
@@ -16,17 +17,24 @@ export class Authentication {
         try {
             let token = req.header("Authorization");
             if (!token) {
-                res.status(401).send({ message: "UnAuthorized" });
-                return;
+                throw new InternalServerError('UnAuthorized');
             }
             token = token!.replace("Bearer ", "")
-            const decoded = jwt.verify(token, "HeerMistry") as { id: Types.ObjectId, role: string }
+            if (!SECRET_KEY) {
+                throw new InternalServerError('SECRET_KEY is not defined');
+            }
+            const decoded = jwt.verify(token, SECRET_KEY) as { id: Types.ObjectId, role: string }
             (req as AuthReq).id = decoded.id;
             (req as AuthReq).role = decoded.role;
             console.log(decoded)
             next();
-        } catch (error) {
-            res.send({ messgae: error })
+        } catch (error: any) {
+            const customError: BaseError = ErrorHandler.handleError(error);
+            res.status(customError.statusCode).json({
+                error: {
+                    message: customError.message
+                }
+            });
         }
     }
 
@@ -39,21 +47,27 @@ export class Authentication {
         try {
             let token = req.header("Authorization");
             if (!token) {
-                res.status(401).send({ message: "UnAuthorized" });
-                return;
+                throw new InternalServerError('UnAuthorized');
             }
             token = token!.replace("Bearer ", "")
-            const decoded = jwt.verify(token, "HeerMistry") as { id: Types.ObjectId, role: string }
+            if (!SECRET_KEY) {
+                throw new InternalServerError('SECRET_KEY is not defined');
+            }
+            const decoded = jwt.verify(token, SECRET_KEY) as { id: Types.ObjectId, role: string }
 
             if (!decoded.role || decoded.role !== 'admin') {
-                res.status(403).json({ error: 'Forbidden' });
-                return;
+                throw new InternalServerError('Forbbiden');
             }
             (req as AuthReq).id = decoded.id;
             (req as AuthReq).role = decoded.role;
             next();
-        } catch (error) {
-            res.send({ messgae: error })
+        } catch (error: any) {
+            const customError: BaseError = ErrorHandler.handleError(error);
+            res.status(customError.statusCode).json({
+                error: {
+                    message: customError.message
+                }
+            });
         }
     }
 
@@ -66,21 +80,27 @@ export class Authentication {
         try {
             let token = req.header("Authorization");
             if (!token) {
-                res.status(401).send({ message: "UnAuthorized" });
-                return;
+                throw new InternalServerError('UnAuthorized');
             }
             token = token!.replace("Bearer ", "")
-            const decoded = jwt.verify(token, "HeerMistry") as { id: Types.ObjectId, role: string }
+            if (!SECRET_KEY) {
+                throw new InternalServerError('SECRET_KEY is not defined');
+            }
+            const decoded = jwt.verify(token, SECRET_KEY) as { id: Types.ObjectId, role: string }
 
             if (!decoded.role || decoded.role !== 'author') {
-                res.status(403).json({ error: 'Forbidden' });
-                return;
+                throw new InternalServerError('Forbbiden');
             }
             (req as AuthReq).id = decoded.id;
             (req as AuthReq).role = decoded.role;
             next();
-        } catch (error) {
-            res.send({ messgae: error })
+        } catch (error: any) {
+            const customError: BaseError = ErrorHandler.handleError(error);
+            res.status(customError.statusCode).json({
+                error: {
+                    message: customError.message
+                }
+            });
         }
     }
 

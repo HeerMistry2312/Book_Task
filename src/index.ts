@@ -7,6 +7,7 @@ import { AdminRoute } from "./routes/adminRoute";
 import { AuthorRoute } from "./routes/authorRoute";
 import { BookRoute } from "./routes/bookRoute";
 import { CartRoute } from "./routes/cartRoute";
+import { InternalServerError } from './error/errorHandler';
 export class App {
     private app: express.Application;
 
@@ -21,8 +22,7 @@ export class App {
         this.app.use(express.json());
 
         if (!SECRET_KEY) {
-            console.error('SECRET_KEY is not defined in the environment');
-            process.exit(1);
+            throw new InternalServerError('SECRET_KEY is not defined');
         }
         this.app.use(session({
             secret: SECRET_KEY,
