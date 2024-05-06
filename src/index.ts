@@ -4,6 +4,7 @@ import session from 'express-session';
 import { SECRET_KEY } from "../src/config/config";
 import { UserRoute } from "./routes/userRoute";
 import { AdminRoute } from "./routes/adminRoute";
+import { AuthorRoute } from "./routes/authorRoute";
 export class App {
     private app: express.Application;
 
@@ -38,8 +39,10 @@ export class App {
     private routes(): void {
         const userRoute = new UserRoute().getRoute()
         const adminRoute = new AdminRoute().getRoute()
+        const authorRoute = new AuthorRoute().getRoute()
         this.app.use('/', userRoute)
         this.app.use('/admin', adminRoute)
+        this.app.use('/author', authorRoute)
     }
     public start(port: string | undefined): void {
         this.app.listen(port, () => {
