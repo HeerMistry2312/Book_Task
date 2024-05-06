@@ -14,7 +14,7 @@ export class AuthorRoute {
         this.router.patch('/updateBook/:id', Authentication.authAuthor, authorControl.updateBook)
         this.router.delete('/deleteBook/:id', Authentication.authAuthor, authorControl.deleteBook)
         this.router.get('/myBooks', Authentication.authAuthor, authorControl.showMyBooks)
-        this.router.get('/myBook/:id', Authentication.authAuthor, authorControl.showBook)
+        this.router.get('/myBook/:name', Authentication.authAuthor, authorControl.showBook)
     }
 
     public getRoute(): express.Router {

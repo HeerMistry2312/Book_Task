@@ -58,9 +58,9 @@ export class authorControl {
 
     public static async showBook(req: Request, res: Response): Promise<void> {
         try {
-            const id = req.params.id
-            const author = (req as AuthReq).id!.toString()
-            const myBooks = await AuthorService.ShowBook(author, id)
+            const name = req.params.name
+            const id = (req as AuthReq).id!.toString()
+            const myBooks = await AuthorService.ShowBook(id, name)
             res.send(myBooks)
         } catch (error) {
             res.status(500).send(error);

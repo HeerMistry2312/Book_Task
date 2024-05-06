@@ -18,7 +18,7 @@ export class AuthorService {
         if (book.author.toString() !== author) {
             return { message: "You are not Authorized to update this Book" }
         }
-        book = await Book.findByIdAndUpdate(id, body, { new: true })
+        book = await Book.findByIdAndUpdate(id, body, { new: true }).populate({ path: 'author', select: 'username' })
         return book
     }
 
@@ -37,7 +37,7 @@ export class AuthorService {
 
 
     public static async ShowMyBooks(author: string): Promise<object> {
-        let book = await Book.find({ author: author })
+        let book = await Book.find({ author: author }).populate({ path: 'author', select: 'username' })
         if (!book) {
             return { message: "Book Not Found" }
         }
@@ -45,13 +45,14 @@ export class AuthorService {
     }
 
 
-    public static async ShowBook(author: string, id: string): Promise<object | null> {
-        let book = await Book.findById(id)
-        if (!book) {
-            return { message: "Book Not Found" }
+    public static async ShowBook(author_id: string, name: string): Promise<object | null> {
+        let seekauthor = await User.findOne({ _id: author_id, role: 'author' })
+        if (!seekauthor) {
+            return { message: `No Author found` }
         }
-        if (book.author.toString() !== author) {
-            return { message: "This Book Is Not Yours" }
+        const book = await Book.find({ author: seekauthor._id, title: name }).populate({ path: 'author', select: 'username' })
+        if (!book) {
+            return { message: `No Book found with name as ${name}` }
         }
         return book
     }
