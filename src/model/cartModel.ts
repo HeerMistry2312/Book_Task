@@ -5,25 +5,25 @@ import Book, { BookInterface } from './bookModel';
 export interface cartItemInterface {
     book: mongoose.Types.ObjectId | BookInterface;
     quantity: number;
-    totalPrice: number;
+    totalPrice?: number;
 }
 
 export interface cartInterface extends Document {
     userId: mongoose.Types.ObjectId | UserInterface;
     books: cartItemInterface[];
-    totalAmount: number;
+    totalAmount?: number;
 }
 
 const cartItemSchema: Schema<cartItemInterface> = new Schema({
     book: { type: Schema.Types.ObjectId, ref: 'Book', required: true },
     quantity: { type: Number, required: true, default: 1 },
-    totalPrice: { type: Number, required: true }
+    totalPrice: { type: Number }
 })
 
 const cartSchema: Schema<cartInterface> = new Schema({
     userId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
     books: [cartItemSchema],
-    totalAmount: { type: Number, required: true, default: 0 }
+    totalAmount: { type: Number, default: 0 }
 })
 
 cartSchema.pre<cartInterface>('save', async function (next) {

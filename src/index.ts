@@ -6,6 +6,7 @@ import { UserRoute } from "./routes/userRoute";
 import { AdminRoute } from "./routes/adminRoute";
 import { AuthorRoute } from "./routes/authorRoute";
 import { BookRoute } from "./routes/bookRoute";
+import { CartRoute } from "./routes/cartRoute";
 export class App {
     private app: express.Application;
 
@@ -42,10 +43,12 @@ export class App {
         const adminRoute = new AdminRoute().getRoute()
         const authorRoute = new AuthorRoute().getRoute()
         const bookRoute = new BookRoute().getRoute()
+        const cartRoute = new CartRoute().getRoute()
         this.app.use('/', userRoute)
         this.app.use('/admin', adminRoute)
         this.app.use('/author', authorRoute)
         this.app.use('/book', bookRoute)
+        this.app.use('/cart', cartRoute)
     }
     public start(port: string | undefined): void {
         this.app.listen(port, () => {
