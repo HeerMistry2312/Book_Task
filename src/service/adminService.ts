@@ -50,4 +50,24 @@ export class AdminService {
         }
         return { message: "Delete Success", data: book }
     }
+
+
+    public static async listofPendingReq(page: number, pageSize: number): Promise<object> {
+        const totalCount = await User.countDocuments({ isApproved: false });
+        const totalPages = Math.ceil(totalCount / pageSize);
+        if (page < 1 || page > totalPages) {
+            throw new InternalServerError('Invalid page number');
+        }
+        const skip = (page - 1) * pageSize;
+        const user = await User.find({ isApproved: false }).skip(skip).limit(pageSize)
+        if (!user) {
+            throw new InternalServerError('User not Found');
+        }
+        return {
+            pendingRequests: user,
+            totalPendingReq: totalCount,
+            totalPages: totalPages,
+            currentPage: page
+        };
+    }
 }

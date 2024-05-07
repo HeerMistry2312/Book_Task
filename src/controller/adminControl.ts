@@ -82,6 +82,19 @@ export class adminControl {
         }
     }
 
-
+    public static async listofPendingReq(req: Request, res: Response): Promise<void> {
+        try {
+            const { page = 1, pageSize = 2 } = req.query;
+            const un = await AdminService.listofPendingReq(+page, +pageSize)
+            res.status(200).send(un)
+        } catch (error: any) {
+            const customError: BaseError = ErrorHandler.handleError(error);
+            res.status(customError.statusCode).json({
+                error: {
+                    message: customError.message
+                }
+            });
+        }
+    }
 
 }

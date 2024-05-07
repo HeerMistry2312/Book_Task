@@ -67,12 +67,36 @@ export class userControl {
         }
     }
 
+    public static async editAccount(req: Request, res: Response): Promise<void> {
+        try {
+            const id: Types.ObjectId | undefined = (req as AuthReq).id
+            const body = req.body;
+
+            let newUser = await UserService.editAccount(id, body)
+            res.status(200).json(newUser);
+        } catch (error: any) {
+            const customError: BaseError = ErrorHandler.handleError(error);
+            res.status(customError.statusCode).json({
+                error: {
+                    message: customError.message
+                }
+            });
+        }
+    }
 
 
-    // public static async deleteAccount(req: Request, res: Response): Promise<void>{
-    //     try{
+    public static async deleteAccount(req: Request, res: Response): Promise<void> {
+        try {
+            const id: Types.ObjectId | undefined = (req as AuthReq).id
 
-    //     }
-    // }
+        } catch (error: any) {
+            const customError: BaseError = ErrorHandler.handleError(error);
+            res.status(customError.statusCode).json({
+                error: {
+                    message: customError.message
+                }
+            });
+        }
+    }
 
 }

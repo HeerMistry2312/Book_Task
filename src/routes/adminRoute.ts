@@ -15,6 +15,7 @@ export class AdminRoute {
         this.router.post('/addBook', Authentication.authAdmin, adminControl.createBook)
         this.router.patch('/updateBook/:id', Authentication.authAdmin, adminControl.updateBook)
         this.router.delete('/deleteBook/:id', Authentication.authAdmin, adminControl.deleteBook)
+        this.router.get('/pending', Authentication.authAdmin, adminControl.listofPendingReq)
     }
 
     public getRoute(): express.Router {

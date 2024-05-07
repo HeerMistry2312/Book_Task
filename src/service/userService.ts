@@ -1,5 +1,6 @@
 import { Role } from './../model/userModel';
-import User, { UserInterface } from "../model/userModel";
+import User from './../model/userModel';
+import Cart from '../model/cartModel';
 import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
 import { Types } from "mongoose";
@@ -54,4 +55,33 @@ export class UserService {
         user.token = "";
         await user.save();
     }
+
+    public static async editAccount(id: Types.ObjectId | undefined, body: object): Promise<object> {
+        const user = await User.findById({ _id: id });
+        if (!user) {
+            throw new InternalServerError('User Not logged in');
+        }
+        let update = await User.findByIdAndUpdate(id, body, { new: true })
+        if (!update) {
+            throw new InternalServerError('User Not Found');
+        }
+        return { message: "User Updated", updatedData: update }
+    }
+
+    public static async deleteAccount(id: Types.ObjectId | undefined): Promise<object> {
+        const user = await User.findById({ _id: id });
+        if (!user) {
+            throw new InternalServerError('User Not logged in');
+        }
+        const del = await User.findByIdAndDelete({ _id: id })
+        if (!del) {
+            throw new InternalServerError('User Not Found');
+        }
+        const delCart = await Cart.findOneAndDelete({ userId: id })
+        if (!delCart) {
+            throw new InternalServerError('Cart is Empty');
+        }
+        return { message: "User Deleted", deletedUserData: del, deletedCartData: delCart }
+    }
+
 }

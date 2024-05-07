@@ -2,7 +2,6 @@ import { Request, Response } from "express";
 import { AuthorService } from "../service/authorService";
 import { AuthReq } from "../middleware/authentication";
 import { BaseError, InternalServerError, BadRequestError, ErrorHandler } from '../error/errorHandler';
-import { paginate } from "./pagination";
 export class authorControl {
     public static async createBook(req: Request, res: Response): Promise<void> {
         try {
