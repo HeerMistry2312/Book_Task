@@ -1,44 +1,88 @@
-import Book from '../model/bookModel';
+import Book, { BookInterface } from '../model/bookModel';
 import User from '../model/userModel';
 import { InternalServerError } from '../error/errorHandler';
 
 export class BookService {
-    public static async ShowBook(id: string): Promise<object> {
-        let book = await Book.find({ title: id }).populate({ path: 'author', select: 'username' })
+    public static async ShowBook(id: string, page: number, pageSize: number): Promise<Object> {
+        const totalCount = await Book.countDocuments({ title: id });
+        const totalPages = Math.ceil(totalCount / pageSize);
+        if (page < 1 || page > totalPages) {
+            throw new InternalServerError('Invalid page number');
+        }
+        const skip = (page - 1) * pageSize;
+        let book = await Book.find({ title: id }).skip(skip).limit(pageSize).populate({ path: 'author', select: 'username' })
         if (!book) {
             throw new InternalServerError('Book not Found');
         }
-        return book
+        return {
+            books: book,
+            totalBooks: totalCount,
+            totalPages: totalPages,
+            currentPage: page
+        };
     }
 
 
-    public static async ShowAllBooks(): Promise<object> {
-        let book = await Book.find({}).populate({ path: 'author', select: 'username' })
+    public static async ShowAllBooks(page: number, pageSize: number): Promise<Object> {
+        const totalCount = await Book.countDocuments();
+        const totalPages = Math.ceil(totalCount / pageSize);
+        if (page < 1 || page > totalPages) {
+            throw new InternalServerError('Invalid page number');
+        }
+        const skip = (page - 1) * pageSize;
+        let book = await Book.find().skip(skip).limit(pageSize).populate({ path: 'author', select: 'username' })
         if (!book) {
             throw new InternalServerError('Book not Found');
         }
-        return book
+        return {
+            books: book,
+            totalBooks: totalCount,
+            totalPages: totalPages,
+            currentPage: page
+        };
     }
 
 
-    public static async ShowByCategory(category: string): Promise<object> {
-        const book = await Book.find({ categories: category }).populate({ path: 'author', select: 'username' });
+    public static async ShowByCategory(category: string, page: number, pageSize: number): Promise<Object> {
+        const totalCount = await Book.countDocuments({ categories: category });
+        const totalPages = Math.ceil(totalCount / pageSize);
+        if (page < 1 || page > totalPages) {
+            throw new InternalServerError('Category Not FOund');
+        }
+        const skip = (page - 1) * pageSize;
+        const book = await Book.find({ categories: category }).skip(skip).limit(pageSize).populate({ path: 'author', select: 'username' });
         if (!book) {
             throw new InternalServerError('Book not Found');
         }
-        return book;
+        return {
+            books: book,
+            totalBooks: totalCount,
+            totalPages: totalPages,
+            currentPage: page
+        };
     }
 
 
-    public static async ShowByAuthor(id: string): Promise<object> {
+    public static async ShowByAuthor(id: string, page: number, pageSize: number): Promise<Object> {
         let author = await User.findOne({ username: id, role: 'author' })
         if (!author) {
             throw new InternalServerError(`No Author found with name of ${id}`);
         }
-        const book = await Book.find({ author: author._id }).populate({ path: 'author', select: 'username' })
+        const totalCount = await Book.countDocuments({ author: author._id });
+        const totalPages = Math.ceil(totalCount / pageSize);
+        if (page < 1 || page > totalPages) {
+            throw new InternalServerError('Author Not FOund');
+        }
+        const skip = (page - 1) * pageSize;
+        const book = await Book.find({ author: author._id }).skip(skip).limit(pageSize).populate({ path: 'author', select: 'username' })
         if (!book) {
             throw new InternalServerError(`No Book found with name of author as ${id}`);
         }
-        return book
+        return {
+            books: book,
+            totalBooks: totalCount,
+            totalPages: totalPages,
+            currentPage: page
+        };
     }
 }

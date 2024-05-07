@@ -62,12 +62,10 @@ export class authorControl {
     public static async showMyBooks(req: Request, res: Response): Promise<void> {
         try {
             const author = (req as AuthReq).id!.toString()
-            const page = parseInt(req.query.page as string) || 1;
-            const limit = parseInt(req.query.limit as string) || 10;
-            const myBooks = await AuthorService.ShowMyBooks(author)
-            const data = [myBooks]
-            const paginatedBooks = paginate(data, page, limit);
-            res.status(200).send(paginatedBooks)
+            const { page = 1, pageSize = 2 } = req.query;
+            const myBooks = await AuthorService.ShowMyBooks(author, +page, +pageSize)
+
+            res.status(200).send(myBooks)
         } catch (error: any) {
             const customError: BaseError = ErrorHandler.handleError(error);
             res.status(customError.statusCode).json({

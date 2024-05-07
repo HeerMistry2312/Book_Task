@@ -36,12 +36,23 @@ export class AuthorService {
     }
 
 
-    public static async ShowMyBooks(author: string): Promise<object> {
-        let book = await Book.find({ author: author }).populate({ path: 'author', select: 'username' })
+    public static async ShowMyBooks(author: string, page: number, pageSize: number): Promise<object> {
+        const totalCount = await Book.countDocuments({ author: author });
+        const totalPages = Math.ceil(totalCount / pageSize);
+        if (page < 1 || page > totalPages) {
+            throw new InternalServerError('Category Not FOund');
+        }
+        const skip = (page - 1) * pageSize;
+        let book = await Book.find({ author: author }).skip(skip).limit(pageSize).populate({ path: 'author', select: 'username' })
         if (!book) {
             throw new InternalServerError('Book Not Found');
         }
-        return book
+        return {
+            books: book,
+            totalBooks: totalCount,
+            totalPages: totalPages,
+            currentPage: page
+        };
     }
 
 
