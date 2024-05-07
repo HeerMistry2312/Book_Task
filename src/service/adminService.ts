@@ -1,6 +1,8 @@
 import { InternalServerError } from '../error/errorHandler';
 import User, { UserInterface } from "../model/userModel";
-import Book from '../model/bookModel';
+import Book, { BookInterface } from '../model/bookModel';
+import { Types } from 'mongoose';
+import Category from '../model/category';
 
 export class AdminService {
     public static async ApproveAuthor(id: string): Promise<object> {
@@ -27,15 +29,48 @@ export class AdminService {
     }
 
 
-    public static async CreateBook(title: string, author: string, categories: Array<string>, description: string, price: number): Promise<object> {
-        let book = new Book({ title: title, author: author, categories: categories, description: description, price: price })
+    public static async CreateBook(data: BookInterface): Promise<object> {
+        const { title, author, categories, description, price } = data
+        const authid = await User.findOne({ username: author })
+        const id: Types.ObjectId = authid!._id
+        const categoryIds: Types.ObjectId[] = [];
+        for (const categoryName of categories) {
+            let category = await Category.findOne({ name: categoryName });
+            if (!category) {
+                category = await Category.create({ name: categoryName });
+            }
+            categoryIds.push(category._id);
+        }
+        let book = new Book({ title, author: id, categories: categoryIds, description, price })
         let newBook = await book.save()
-        return newBook
+        return { message: "Book Created", data: newBook }
     }
 
 
-    public static async UpdateBook(id: string, body: object): Promise<object> {
-        let update = await Book.findByIdAndUpdate(id, body, { new: true })
+    public static async UpdateBook(id: string, body: BookInterface): Promise<object> {
+        const { title, author, categories, description, price } = body
+        let authid1: Types.ObjectId | undefined
+        if (author !== undefined) {
+            const authid = await User.findOne({ username: author })
+            authid1 = authid!._id
+        }
+        const categoryIds: Types.ObjectId[] | undefined = [];
+        if (categories !== undefined) {
+            for (const categoryName of categories) {
+                let category = await Category.findOne({ name: categoryName });
+                if (!category) {
+                    category = await Category.create({ name: categoryName });
+                }
+                categoryIds.push(category._id);
+            }
+        }
+        let update = await Book.findByIdAndUpdate(id, {
+            title,
+            author: authid1 || undefined,
+            categories: categoryIds || undefined,
+            description,
+            price,
+        }, { new: true })
         if (!update) {
             throw new InternalServerError('Book Not Found');
         }
@@ -44,7 +79,9 @@ export class AdminService {
 
 
     public static async DeleteBook(id: string): Promise<object> {
-        const book = await Book.findByIdAndDelete({ _id: id })
+        const bookid = await Book.findOne({ title: id })
+        const id1: Types.ObjectId = bookid!._id
+        const book = await Book.findByIdAndDelete({ _id: id1 })
         if (!book) {
             throw new InternalServerError('Book Not Found');
         }

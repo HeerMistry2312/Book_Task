@@ -1,16 +1,26 @@
 import User, { UserInterface } from "../model/userModel";
-import Book from '../model/bookModel';
 import { InternalServerError } from '../error/errorHandler';
-
+import Book, { BookInterface } from '../model/bookModel';
+import { Types } from 'mongoose';
+import Category from '../model/category';
 export class AuthorService {
-    public static async CreateBook(title: string, author: string, categories: Array<string>, description: string, price: number): Promise<object> {
-        let book = new Book({ title: title, author: author, categories: categories, description: description, price: price })
+    public static async CreateBook(author: string, data: BookInterface): Promise<object> {
+        const { title, categories, description, price } = data
+        const categoryIds: Types.ObjectId[] = [];
+        for (const categoryName of categories) {
+            let category = await Category.findOne({ name: categoryName });
+            if (!category) {
+                category = await Category.create({ name: categoryName });
+            }
+            categoryIds.push(category._id);
+        }
+        let book = new Book({ title: title, author: author, categories: categoryIds, description: description, price: price })
         let newBook = await book.save()
         return { message: "Book Added", data: newBook }
     }
 
 
-    public static async UpdateBook(author: string, id: string, body: object): Promise<object | null> {
+    public static async UpdateBook(author: string, id: string, body: BookInterface): Promise<object | null> {
         let book = await Book.findById(id)
         if (!book) {
             throw new InternalServerError('Book Not Found');
@@ -18,7 +28,18 @@ export class AuthorService {
         if (book.author.toString() !== author) {
             throw new InternalServerError('You are not authorized to edit this book');
         }
-        book = await Book.findByIdAndUpdate(id, body, { new: true }).populate({ path: 'author', select: 'username' })
+        const { title, categories, description, price } = body
+        const categoryIds: Types.ObjectId[] | undefined = [];
+        if (categories !== undefined) {
+            for (const categoryName of categories) {
+                let category = await Category.findOne({ name: categoryName });
+                if (!category) {
+                    category = await Category.create({ name: categoryName });
+                }
+                categoryIds.push(category._id);
+            }
+        }
+        book = await Book.findByIdAndUpdate(id, { title: title, author: author, categories: categoryIds || undefined, description: description, price: price }, { new: true }).populate({ path: 'author', select: 'username' })
         return { message: "Book Updated", data: book }
     }
 

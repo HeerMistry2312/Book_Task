@@ -1,6 +1,9 @@
 import Book, { BookInterface } from '../model/bookModel';
 import User from '../model/userModel';
 import { InternalServerError } from '../error/errorHandler';
+import Category from '../model/category';
+import { Type } from 'typescript';
+import { Types } from 'mongoose';
 
 export class BookService {
     public static async ShowBook(id: string, page: number, pageSize: number): Promise<Object> {
@@ -10,7 +13,10 @@ export class BookService {
             throw new InternalServerError('Invalid page number');
         }
         const skip = (page - 1) * pageSize;
-        let book = await Book.find({ title: id }).skip(skip).limit(pageSize).populate({ path: 'author', select: 'username' })
+        let book = await Book.find({ title: id }).skip(skip).limit(pageSize).populate({ path: 'author', select: 'username' }).populate({
+            path: 'categories',
+            select: 'name'
+        })
         if (!book) {
             throw new InternalServerError('Book not Found');
         }
@@ -30,7 +36,10 @@ export class BookService {
             throw new InternalServerError('Invalid page number');
         }
         const skip = (page - 1) * pageSize;
-        let book = await Book.find().skip(skip).limit(pageSize).populate({ path: 'author', select: 'username' })
+        let book = await Book.find().skip(skip).limit(pageSize).populate({ path: 'author', select: 'username' }).populate({
+            path: 'categories',
+            select: 'name'
+        })
         if (!book) {
             throw new InternalServerError('Book not Found');
         }
@@ -44,13 +53,18 @@ export class BookService {
 
 
     public static async ShowByCategory(category: string, page: number, pageSize: number): Promise<Object> {
-        const totalCount = await Book.countDocuments({ categories: category });
+        const cat = await Category.findOne({ name: category })
+        let catid: Types.ObjectId = cat!._id
+        const totalCount = await Book.countDocuments({ categories: catid });
         const totalPages = Math.ceil(totalCount / pageSize);
         if (page < 1 || page > totalPages) {
             throw new InternalServerError('Category Not FOund');
         }
         const skip = (page - 1) * pageSize;
-        const book = await Book.find({ categories: category }).skip(skip).limit(pageSize).populate({ path: 'author', select: 'username' });
+        const book = await Book.find({ categories: catid }).skip(skip).limit(pageSize).populate({ path: 'author', select: 'username' }).populate({
+            path: 'categories',
+            select: 'name'
+        });
         if (!book) {
             throw new InternalServerError('Book not Found');
         }
@@ -74,7 +88,10 @@ export class BookService {
             throw new InternalServerError('Author Not FOund');
         }
         const skip = (page - 1) * pageSize;
-        const book = await Book.find({ author: author._id }).skip(skip).limit(pageSize).populate({ path: 'author', select: 'username' })
+        const book = await Book.find({ author: author._id }).skip(skip).limit(pageSize).populate({ path: 'author', select: 'username' }).populate({
+            path: 'categories',
+            select: 'name'
+        })
         if (!book) {
             throw new InternalServerError(`No Book found with name of author as ${id}`);
         }

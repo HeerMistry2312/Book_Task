@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import { AdminService } from "../service/adminService";
+import Book, { BookInterface } from '../model/bookModel';
 import { BaseError, InternalServerError, BadRequestError, ErrorHandler } from '../error/errorHandler';
 export class adminControl {
     public static async approveAuthor(req: Request, res: Response): Promise<void> {
@@ -36,9 +37,9 @@ export class adminControl {
 
     public static async createBook(req: Request, res: Response): Promise<void> {
         try {
-            const { title, author, categories, description, price } = req.body;
-            let book = await AdminService.CreateBook(title, author, categories, description, price)
-            res.status(200).send({ message: "Book created Successfully", data: book })
+            const Data: BookInterface = req.body;
+            let book = await AdminService.CreateBook(Data)
+            res.status(200).send(book)
         } catch (error: any) {
             const customError: BaseError = ErrorHandler.handleError(error);
             res.status(customError.statusCode).json({
@@ -53,7 +54,7 @@ export class adminControl {
     public static async updateBook(req: Request, res: Response): Promise<void> {
         try {
             const id = req.params.id;
-            const body = req.body;
+            const body: BookInterface = req.body;
             let update = await AdminService.UpdateBook(id, body)
             res.status(200).send(update)
         } catch (error: any) {

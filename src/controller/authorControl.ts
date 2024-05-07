@@ -1,13 +1,14 @@
 import { Request, Response } from "express";
 import { AuthorService } from "../service/authorService";
 import { AuthReq } from "../middleware/authentication";
+import Book, { BookInterface } from '../model/bookModel';
 import { BaseError, InternalServerError, BadRequestError, ErrorHandler } from '../error/errorHandler';
 export class authorControl {
     public static async createBook(req: Request, res: Response): Promise<void> {
         try {
             const author = (req as AuthReq).id!.toString()
-            const { title, categories, description, price } = req.body;
-            const book = await AuthorService.CreateBook(title, author, categories, description, price)
+            const data: BookInterface = req.body;
+            const book = await AuthorService.CreateBook(author, data)
             res.status(200).send(book)
         } catch (error: any) {
             const customError: BaseError = ErrorHandler.handleError(error);
@@ -25,7 +26,7 @@ export class authorControl {
         try {
             const author = (req as AuthReq).id!.toString()
             const id = req.params.id;
-            const body = req.body;
+            const body: BookInterface = req.body;
             const updated = await AuthorService.UpdateBook(author, id, body)
             res.status(200).send(updated)
 

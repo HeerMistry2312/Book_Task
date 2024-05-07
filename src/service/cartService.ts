@@ -6,10 +6,20 @@ import fs from "fs";
 import PDFDocument from "pdfkit";
 import path from "path";
 import { InternalServerError } from '../error/errorHandler';
-
+import Category from '../model/category';
 export class CartService {
     public static async goToCart(id: string): Promise<object> {
-        const cart = await Cart.findOne({ userId: id }).populate('books.book')
+        const cart = await Cart.findOne({ userId: id }).populate({
+            path: 'books.book',
+            populate: [{
+                path: 'author',
+                select: 'username'
+            }, {
+                path: 'categories',
+                select: 'name'
+            }]
+        }
+        )
         if (!cart) {
             throw new InternalServerError('Cart is Empty');
         }
@@ -26,7 +36,17 @@ export class CartService {
             book: new Types.ObjectId(book._id),
             quantity: quantity
         }
-        let cart = await Cart.findOne({ userId: id }).populate('books.book')
+        let cart = await Cart.findOne({ userId: id }).populate({
+            path: 'books.book',
+            populate: [{
+                path: 'author',
+                select: 'username'
+            }, {
+                path: 'categories',
+                select: 'name'
+            }]
+        }
+        )
         if (!cart) {
             cart = new Cart({ userId: id, books: [cartItem] })
 
@@ -49,7 +69,17 @@ export class CartService {
         if (!book) {
             throw new InternalServerError('Book Not Found');
         }
-        let cart = await Cart.findOne({ userId: id }).populate('books.book');
+        let cart = await Cart.findOne({ userId: id }).populate({
+            path: 'books.book',
+            populate: [{
+                path: 'author',
+                select: 'username'
+            }, {
+                path: 'categories',
+                select: 'name'
+            }]
+        }
+        );
         if (!cart) {
             throw new InternalServerError('Cart Not Found');
         }
@@ -71,7 +101,17 @@ export class CartService {
         if (!book) {
             throw new InternalServerError('User Not Found');
         }
-        let cart = await Cart.findOne({ userId: id }).populate('books.book');
+        let cart = await Cart.findOne({ userId: id }).populate({
+            path: 'books.book',
+            populate: [{
+                path: 'author',
+                select: 'username'
+            }, {
+                path: 'categories',
+                select: 'name'
+            }]
+        }
+        );
         if (!cart) {
             throw new InternalServerError('Cart Not Found');
         }
@@ -87,7 +127,17 @@ export class CartService {
 
 
     public static async emptyCart(id: string): Promise<cartInterface | object> {
-        let cart = await Cart.findOne({ userId: id }).populate('books.book');
+        let cart = await Cart.findOne({ userId: id }).populate({
+            path: 'books.book',
+            populate: [{
+                path: 'author',
+                select: 'username'
+            }, {
+                path: 'categories',
+                select: 'name'
+            }]
+        }
+        );
         if (!cart) {
             throw new InternalServerError('Cart Not Found');
         }
@@ -123,7 +173,6 @@ export class CartService {
 
         let Ycod = doc.y;
         doc.font("Helvetica-Bold").text("Book Title", 70, Ycod);
-        doc.text("Category", 150, Ycod);
         doc.text("Quantity", 250, Ycod);
         doc.text("Price", 350, Ycod);
         doc.text("Total Price", 450, Ycod);
@@ -135,7 +184,6 @@ export class CartService {
             if (book) {
                 let Ycod = doc.y;
                 doc.font("Helvetica").text(book.title, 70, Ycod);
-                doc.text(book.categories.toString(), 150, Ycod);
                 doc.text(item.quantity.toString(), 250, Ycod);
                 doc.text(book.price.toString(), 350, Ycod);
                 doc.text(item.totalPrice!.toString(), 450, Ycod);
