@@ -6,17 +6,17 @@ import fs from "fs";
 import PDFDocument from "pdfkit";
 import path from "path";
 import { InternalServerError } from '../error/errorHandler';
-import Category from '../model/category';
+
 export class CartService {
     public static async goToCart(id: string): Promise<object> {
         const cart = await Cart.findOne({ userId: id }).populate({
             path: 'books.book',
             populate: [{
                 path: 'author',
-                select: 'username'
+                select: ['username','-_id']
             }, {
                 path: 'categories',
-                select: 'name'
+                select: ['name','-_id']
             }]
         }
         )
@@ -40,10 +40,10 @@ export class CartService {
             path: 'books.book',
             populate: [{
                 path: 'author',
-                select: 'username'
+                select: ['username','-_id']
             }, {
                 path: 'categories',
-                select: 'name'
+                select: ['name','-_id']
             }]
         }
         )
@@ -59,8 +59,7 @@ export class CartService {
             }
         }
         cart = await cart.save()
-        const populatedCart = await Cart.populate(cart, { path: 'books.book', select: 'title' });
-        return { message: "Book Added to Your Cart", data: populatedCart }
+        return { message: "Book Added to Your Cart", data: cart }
     }
 
 

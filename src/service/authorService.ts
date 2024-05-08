@@ -39,7 +39,7 @@ export class AuthorService {
                 categoryIds.push(category._id);
             }
         }
-        book = await Book.findByIdAndUpdate(book._id, { title: title, author: author, categories: categoryIds || undefined, description: description, price: price }, { new: true }).populate({ path: 'author', select: 'username' }).populate({ path: 'categories', select: 'name' });
+        book = await Book.findByIdAndUpdate(book._id, { title: title, author: author, categories: categoryIds || undefined, description: description, price: price }, { new: true }).populate({ path: 'author', select: ['username','-_id'] }).populate({ path: 'categories', select: ['name','-_id'] });
         return { message: "Book Updated", data: book }
     }
 
@@ -52,8 +52,8 @@ export class AuthorService {
         if (book.author.toString() !== author) {
             throw new InternalServerError('You are not authorized to delete this book');
         }
-        book = await Book.findByIdAndDelete(book._id).populate({ path: 'author', select: 'username' }) // Populate author name
-        .populate({ path: 'categories', select: 'name' })
+        book = await Book.findByIdAndDelete(book._id).populate({ path: 'author', select: ['username','-_id'] }).populate({ path: 'categories', select: ['name','-_id'] });
+
         return { message: "Book Deleted", deletedData: book }
     }
 
@@ -65,7 +65,7 @@ export class AuthorService {
             throw new InternalServerError('Category Not FOund');
         }
         const skip = (page - 1) * pageSize;
-        let book = await Book.find({ author: author }).skip(skip).limit(pageSize).populate({ path: 'author', select: 'username' }).populate({ path: 'categories', select: 'name' })
+        let book = await Book.find({ author: author }).skip(skip).limit(pageSize).populate({ path: 'author', select: ['username','-_id'] }).populate({ path: 'categories', select: ['name','-_id'] });
         if (!book) {
             throw new InternalServerError('Book Not Found');
         }
@@ -83,7 +83,7 @@ export class AuthorService {
         if (!seekauthor) {
             throw new InternalServerError('Author Not Found');
         }
-        const book = await Book.find({ author: seekauthor._id, title: name }).populate({ path: 'author', select: 'username' }).populate({ path: 'categories', select: 'name' })
+        const book = await Book.find({ author: seekauthor._id, title: name }).populate({ path: 'author', select: ['username','-_id'] }).populate({ path: 'categories', select: ['name','-_id'] });
         if (!book) {
             throw new InternalServerError('Book Not Found');
         }

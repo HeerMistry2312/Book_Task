@@ -13,10 +13,10 @@ export class BookService {
             throw new InternalServerError('Invalid page number');
         }
         const skip = (page - 1) * pageSize;
-        let book = await Book.find({ title: id }).skip(skip).limit(pageSize).populate({ path: 'author', select: 'username' }).populate({
+        let book = await Book.find({ title: id }).skip(skip).limit(pageSize).populate({ path: 'author', select: ['username','-_id'] }).populate({
             path: 'categories',
-            select: 'name'
-        })
+            select: ['name','-_id']
+        }).select('-_id')
         if (!book) {
             throw new InternalServerError('Book not Found');
         }
@@ -36,10 +36,10 @@ export class BookService {
             throw new InternalServerError('Invalid page number');
         }
         const skip = (page - 1) * pageSize;
-        let book = await Book.find().skip(skip).limit(pageSize).populate({ path: 'author', select: 'username' }).populate({
+        let book = await Book.find().skip(skip).limit(pageSize).populate({ path: 'author', select: ['username','-_id'] }).populate({
             path: 'categories',
-            select: 'name'
-        })
+            select: ['name','-_id']
+        }).select('-_id')
         if (!book) {
             throw new InternalServerError('Book not Found');
         }
@@ -61,10 +61,10 @@ export class BookService {
             throw new InternalServerError('Category Not FOund');
         }
         const skip = (page - 1) * pageSize;
-        const book = await Book.find({ categories: catid }).skip(skip).limit(pageSize).populate({ path: 'author', select: 'username' }).populate({
+        const book = await Book.find({ categories: catid }).skip(skip).limit(pageSize).populate({ path: 'author', select: ['username','-_id'] }).populate({
             path: 'categories',
-            select: 'name'
-        });
+            select: ['name','-_id']
+        }).select('-_id');
         if (!book) {
             throw new InternalServerError('Book not Found');
         }
@@ -88,10 +88,10 @@ export class BookService {
             throw new InternalServerError('Author Not FOund');
         }
         const skip = (page - 1) * pageSize;
-        const book = await Book.find({ author: author._id }).skip(skip).limit(pageSize).populate({ path: 'author', select: 'username' }).populate({
+        const book = await Book.find({ author: author._id }).skip(skip).limit(pageSize).populate({ path: 'author', select:  ['username','-_id'] }).populate({
             path: 'categories',
-            select: 'name'
-        })
+            select: ['name','-_id']
+        }).select('-_id')
         if (!book) {
             throw new InternalServerError(`No Book found with name of author as ${id}`);
         }

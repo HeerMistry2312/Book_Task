@@ -32,6 +32,9 @@ export class AdminService {
     public static async CreateBook(data: BookInterface): Promise<object> {
         const { title, author, categories, description, price } = data
         const authid = await User.findOne({ username: author })
+        if(!authid){
+            throw new InternalServerError('Author Not Found');
+        }
         const id: Types.ObjectId = authid!._id
         const categoryIds: Types.ObjectId[] = [];
         for (const categoryName of categories) {
@@ -74,8 +77,7 @@ export class AdminService {
             categories: categoryIds || undefined,
             description,
             price,
-        }, { new: true }).populate({ path: 'author', select: 'username' })
-        .populate({ path: 'categories', select: 'name' });
+        }, { new: true }).populate({ path: 'author', select: ['username','-_id'] }).populate({ path: 'categories', select: ['name','-_id'] });
         if (!update) {
             throw new InternalServerError('Book Not Found');
         }
@@ -86,8 +88,7 @@ export class AdminService {
     public static async DeleteBook(id: string): Promise<object> {
         const bookid = await Book.findOne({ title: id })
         const id1: Types.ObjectId = bookid!._id
-        const book = await Book.findByIdAndDelete({ _id: id1 }).populate({ path: 'author', select: 'username' }) // Populate author name
-        .populate({ path: 'categories', select: 'name' })
+        const book = await Book.findByIdAndDelete({ _id: id1 }).populate({ path: 'author', select: ['username','-_id'] }).populate({ path: 'categories', select: ['name','-_id'] });
         if (!book) {
             throw new InternalServerError('Book Not Found');
         }

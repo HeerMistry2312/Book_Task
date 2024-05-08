@@ -9,7 +9,7 @@ export class CategoryService {
             throw new InternalServerError('Category Not FOund');
         }
         const skip = (page - 1) * pageSize;
-        let cat = await Category.find().skip(skip).limit(pageSize)
+        let cat = await Category.find().skip(skip).limit(pageSize).select('-_id')
         if (!cat) {
             throw new InternalServerError('Book Not Found');
         }
@@ -28,7 +28,7 @@ export class CategoryService {
     }
 
     public static async updateCategory(category: string): Promise<object> {
-        let categori = await Category.findOneAndUpdate({ name: category })
+        let categori = await Category.findOneAndUpdate({ name: category }).select('-_id')
         if (!categori) {
             throw new InternalServerError('Category Not Found');
         }
@@ -36,7 +36,7 @@ export class CategoryService {
     }
 
     public static async deleteCategory(category: string): Promise<object> {
-        let categori = await Category.findOneAndDelete({ name: category })
+        let categori = await Category.findOneAndDelete({ name: category }).select('-_id')
         if (!categori) {
             throw new InternalServerError('Category Not Found');
         }
