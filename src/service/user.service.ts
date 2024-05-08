@@ -1,6 +1,6 @@
-import { Role } from './../model/userModel';
-import User from './../model/userModel';
-import Cart from '../model/cartModel';
+import { Role } from '../interfaces/user.interface';
+import User from '../model/user.model';
+import Cart from '../model/cart.model';
 import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
 import { Types } from "mongoose";
@@ -28,10 +28,8 @@ export class UserService {
         if (!user) {
             throw new InternalServerError("User Doesn't Exist");
         }
-        if (user.role === 'admin' || user.role === 'author') {
-            if (!user.isApproved) {
+        if ((user.role === Role.Admin || user.role === Role.Author) && !user.isApproved) {
                 throw new InternalServerError('Admin has not approve your Request');
-            }
         }
         const passwordMatch = await bcrypt.compare(password, user.password);
         if (!passwordMatch) {
@@ -56,12 +54,12 @@ export class UserService {
         await user.save();
     }
 
-    public static async editAccount(id: Types.ObjectId | undefined, body: object): Promise<object> {
+    public static async editAccount(id: Types.ObjectId | undefined, name: string, email: string): Promise<object> {
         const user = await User.findById({ _id: id });
         if (!user) {
             throw new InternalServerError('User Not logged in');
         }
-        let update = await User.findByIdAndUpdate(id, body, { new: true })
+        let update = await User.findByIdAndUpdate(id, {username: name, email:email}, { new: true })
         if (!update) {
             throw new InternalServerError('User Not Found');
         }

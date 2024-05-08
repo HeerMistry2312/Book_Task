@@ -1,4 +1,4 @@
-import { CartControl } from "../controller/cartControl";
+import { CartControl } from "../controller/cart.controller";
 import express from "express";
 import { Authentication } from "../middleware/authentication";
 export class CartRoute {

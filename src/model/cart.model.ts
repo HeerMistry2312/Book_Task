@@ -1,18 +1,6 @@
 import mongoose, { Document, Schema } from 'mongoose';
-import { UserInterface } from './userModel';
-import Book, { BookInterface } from './bookModel';
-
-export interface cartItemInterface {
-    book: mongoose.Types.ObjectId | BookInterface;
-    quantity: number;
-    totalPrice?: number;
-}
-
-export interface cartInterface extends Document {
-    userId: mongoose.Types.ObjectId | UserInterface;
-    books: cartItemInterface[];
-    totalAmount?: number;
-}
+import Book from './book.model';
+import { cartItemInterface, cartInterface } from '../interfaces/cart.interface';
 
 const cartItemSchema: Schema<cartItemInterface> = new Schema({
     book: { type: Schema.Types.ObjectId, ref: 'Book', required: true },

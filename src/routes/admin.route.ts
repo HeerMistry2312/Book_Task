@@ -1,7 +1,7 @@
-import { adminControl } from '../controller/adminControl';
+import { adminControl } from '../controller/admin.controller';
 import express from "express";
 import { Authentication } from "../middleware/authentication";
-import { categoryControl } from '../controller/categoryControl';
+import { categoryControl } from '../controller/category.controller';
 export class AdminRoute {
     private router: express.Router;
 

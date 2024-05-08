@@ -1,4 +1,4 @@
-import { userControl } from "../controller/userControl";
+import { userControl } from "../controller/user.controller";
 import express from "express";
 import { Authentication } from "../middleware/authentication";
 export class UserRoute {

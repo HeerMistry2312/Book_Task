@@ -1,4 +1,4 @@
-import Category from '../model/category';
+import Category from '../model/category.model';
 import { InternalServerError } from '../error/errorHandler';
 
 export class CategoryService {

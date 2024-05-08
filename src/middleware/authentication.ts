@@ -3,9 +3,11 @@ import jwt from 'jsonwebtoken';
 import { Types } from "mongoose";
 import { SECRET_KEY } from "../config/config";
 import { BaseError, InternalServerError, BadRequestError, ErrorHandler } from '../error/errorHandler';
-export interface AuthReq extends Request {
-    id?: Types.ObjectId,
-    role?: string
+declare module 'express' {
+    interface Request {
+        id?: Types.ObjectId;
+        role?: string;
+    }
 }
 
 export class Authentication {
@@ -24,8 +26,8 @@ export class Authentication {
                 throw new InternalServerError('SECRET_KEY is not defined');
             }
             const decoded = jwt.verify(token, SECRET_KEY) as { id: Types.ObjectId, role: string }
-            (req as AuthReq).id = decoded.id;
-            (req as AuthReq).role = decoded.role;
+            req.id = decoded.id;
+            req.role = decoded.role;
             console.log(decoded)
             next();
         } catch (error: any) {
@@ -58,8 +60,8 @@ export class Authentication {
             if (!decoded.role || decoded.role !== 'admin') {
                 throw new InternalServerError('Forbbiden');
             }
-            (req as AuthReq).id = decoded.id;
-            (req as AuthReq).role = decoded.role;
+            req.id = decoded.id;
+            req.role = decoded.role;
             next();
         } catch (error: any) {
             const customError: BaseError = ErrorHandler.handleError(error);
@@ -91,8 +93,8 @@ export class Authentication {
             if (!decoded.role || decoded.role !== 'author') {
                 throw new InternalServerError('Forbbiden');
             }
-            (req as AuthReq).id = decoded.id;
-            (req as AuthReq).role = decoded.role;
+            req.id = decoded.id;
+            req.role = decoded.role;
             next();
         } catch (error: any) {
             const customError: BaseError = ErrorHandler.handleError(error);

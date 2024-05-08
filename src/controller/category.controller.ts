@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import { BaseError, InternalServerError, BadRequestError, ErrorHandler } from '../error/errorHandler';
-import { CategoryService } from "../service/categoryService";
+import { CategoryService } from "../service/category.service";
 export class categoryControl {
     public static async showCategories(req: Request, res: Response): Promise<void> {
         try {

@@ -1,8 +1,7 @@
 
 import { Request, Response } from "express";
-import { BookService } from "../service/bookService";
+import { BookService } from "../service/book.service";
 import { BaseError, InternalServerError, BadRequestError, ErrorHandler } from '../error/errorHandler';
-import Book, { BookInterface } from "../model/bookModel";
 export class bookControl {
     public static async showBook(req: Request, res: Response): Promise<void> {
         try {

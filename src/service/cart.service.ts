@@ -1,6 +1,7 @@
-import Book from '../model/bookModel';
-import User from '../model/userModel';
-import Cart, { cartInterface, cartItemInterface } from '../model/cartModel';
+import Book from '../model/book.model';
+import User from '../model/user.model';
+import Cart from '../model/cart.model';
+import { cartInterface,cartItemInterface } from '../interfaces/cart.interface';
 import { Types } from 'mongoose';
 import fs from "fs";
 import PDFDocument from "pdfkit";

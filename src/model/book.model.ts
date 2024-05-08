@@ -1,14 +1,5 @@
-import mongoose, { Document, Schema } from 'mongoose';
-import { UserInterface } from './userModel';
-import Category, { CategoryInterface } from './category';
-export interface BookInterface extends Document {
-    title: string;
-    author: mongoose.Types.ObjectId | UserInterface;
-    categories: mongoose.Types.ObjectId[] | CategoryInterface[];
-    description: string;
-    price: number;
-
-}
+import mongoose, { Document, Schema } from 'mongoose'
+import { BookInterface } from '../interfaces/book.interface';
 
 const bookSchema = new Schema<BookInterface>({
     title: { type: String, required: true },

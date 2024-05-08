@@ -1,4 +1,4 @@
-import { bookControl } from "../controller/bookControl";
+import { bookControl } from "../controller/book.controller";
 import express from "express";
 import { Authentication } from "../middleware/authentication";
 export class BookRoute {

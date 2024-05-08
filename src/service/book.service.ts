@@ -1,8 +1,8 @@
-import Book, { BookInterface } from '../model/bookModel';
-import User from '../model/userModel';
+import Book from '../model/book.model';
+import User from '../model/user.model';
+import { Role } from '../interfaces/user.interface';
 import { InternalServerError } from '../error/errorHandler';
-import Category from '../model/category';
-import { Type } from 'typescript';
+import Category from '../model/category.model';
 import { Types } from 'mongoose';
 
 export class BookService {
@@ -78,7 +78,7 @@ export class BookService {
 
 
     public static async ShowByAuthor(id: string, page: number, pageSize: number): Promise<Object> {
-        let author = await User.findOne({ username: id, role: 'author' })
+        let author = await User.findOne({ username: id, role: Role.Author })
         if (!author) {
             throw new InternalServerError(`No Author found with name of ${id}`);
         }

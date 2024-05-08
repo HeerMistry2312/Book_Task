@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
-import { AdminService } from "../service/adminService";
-import Book, { BookInterface } from '../model/bookModel';
+import { AdminService } from "../service/admin.service";
+import { BookInterface } from "../interfaces/book.interface";
 import { BaseError, InternalServerError, BadRequestError, ErrorHandler } from '../error/errorHandler';
 export class adminControl {
     public static async approveAuthor(req: Request, res: Response): Promise<void> {

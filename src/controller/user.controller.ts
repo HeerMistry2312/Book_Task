@@ -1,7 +1,6 @@
 import { Request, Response } from "express";
-import { UserService } from "../service/userService";
+import { UserService } from "../service/user.service";
 import { Types } from "mongoose";
-import { AuthReq } from "../middleware/authentication";
 import { BaseError, InternalServerError, BadRequestError, ErrorHandler } from '../error/errorHandler';
 export class userControl {
 
@@ -48,7 +47,7 @@ export class userControl {
 
     public static async logout(req: Request, res: Response): Promise<void> {
         try {
-            const id: Types.ObjectId | undefined = (req as AuthReq).id
+            const id: Types.ObjectId | undefined = req.id
             await UserService.Logout(id);
             req.session.destroy((err) => {
                 if (err) {
@@ -69,10 +68,10 @@ export class userControl {
 
     public static async editAccount(req: Request, res: Response): Promise<void> {
         try {
-            const id: Types.ObjectId | undefined = (req as AuthReq).id
-            const body = req.body;
+            const id: Types.ObjectId | undefined = req.id
+            const { username, email } = req.body;
 
-            let newUser = await UserService.editAccount(id, body)
+            let newUser = await UserService.editAccount(id, username, email)
             res.status(200).json(newUser);
         } catch (error: any) {
             const customError: BaseError = ErrorHandler.handleError(error);
@@ -87,7 +86,7 @@ export class userControl {
 
     public static async deleteAccount(req: Request, res: Response): Promise<void> {
         try {
-            const id: Types.ObjectId | undefined = (req as AuthReq).id
+            const id: Types.ObjectId | undefined = req.id
 
         } catch (error: any) {
             const customError: BaseError = ErrorHandler.handleError(error);

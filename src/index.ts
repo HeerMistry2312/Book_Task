@@ -2,11 +2,11 @@ import express from "express";
 import Database from "./config/db";
 import session from 'express-session';
 import { SECRET_KEY } from "../src/config/config";
-import { UserRoute } from "./routes/userRoute";
-import { AdminRoute } from "./routes/adminRoute";
-import { AuthorRoute } from "./routes/authorRoute";
-import { BookRoute } from "./routes/bookRoute";
-import { CartRoute } from "./routes/cartRoute";
+import { UserRoute } from "./routes/user.route";
+import { AdminRoute } from "./routes/admin.route";
+import { AuthorRoute } from "./routes/author.route";
+import { BookRoute } from "./routes/book.route";
+import { CartRoute } from "./routes/cart.route";
 import { InternalServerError } from './error/errorHandler';
 export class App {
     private app: express.Application;

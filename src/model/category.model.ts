@@ -1,8 +1,6 @@
-import mongoose, { Document, Schema } from 'mongoose';
+import mongoose, { Schema } from 'mongoose';
 
-export interface CategoryInterface extends Document {
-    name: string;
-}
+import { CategoryInterface } from '../interfaces/category.interface';
 
 const categorySchema = new Schema<CategoryInterface>({
     name: { type: String, required: true, unique: true },
