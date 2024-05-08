@@ -7,7 +7,7 @@ import { adminRoute } from "./routes/admin.route";
 import { authorRoute } from "./routes/author.route";
 import { bookRoute } from "./routes/book.route";
 import { cartRoute } from "./routes/cart.route";
-import { InternalServerError } from './error/errorHandler';
+import { appError, errorHandlerMiddleware } from "./error/errorHandler";
 export class app {
     private app: express.Application;
 
@@ -22,7 +22,7 @@ export class app {
         this.app.use(express.json());
 
         if (!SECRET_KEY) {
-            throw new InternalServerError('SECRET_KEY is not defined');
+            throw new appError('SECRET_KEY is not defined',404);
         }
         this.app.use(session({
             secret: SECRET_KEY,
@@ -34,6 +34,7 @@ export class app {
                 httpOnly: true,
             }
         }));
+        this.app.use(errorHandlerMiddleware)
     }
     private connectDB(): void {
         new database();

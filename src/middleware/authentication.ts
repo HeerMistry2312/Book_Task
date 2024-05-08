@@ -2,7 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import { Types } from "mongoose";
 import { SECRET_KEY } from "../config/config";
-import { BaseError, InternalServerError, BadRequestError, ErrorHandler } from '../error/errorHandler';
+import { appError, errorHandlerMiddleware} from "../error/errorHandler";
 declare module 'express' {
     interface Request {
         id?: Types.ObjectId;
@@ -19,24 +19,19 @@ export class authentication {
         try {
             let token = req.header("Authorization");
             if (!token) {
-                throw new InternalServerError('UnAuthorized');
+                throw new appError('UnAuthorized',401);
             }
             token = token!.replace("Bearer ", "")
             if (!SECRET_KEY) {
-                throw new InternalServerError('SECRET_KEY is not defined');
+                throw new appError('SECRET_KEY is not defined',404);
             }
             const decoded = jwt.verify(token, SECRET_KEY) as { id: Types.ObjectId, role: string }
             req.id = decoded.id;
             req.role = decoded.role;
             console.log(decoded)
             next();
-        } catch (error: any) {
-            const customError: BaseError = ErrorHandler.handleError(error);
-            res.status(customError.statusCode).json({
-                error: {
-                    message: customError.message
-                }
-            });
+        } catch (error:any) {
+           next(error)
         }
     }
 
@@ -49,28 +44,23 @@ export class authentication {
         try {
             let token = req.header("Authorization");
             if (!token) {
-                throw new InternalServerError('UnAuthorized');
+                throw new appError('UnAuthorized',401);
             }
             token = token!.replace("Bearer ", "")
             if (!SECRET_KEY) {
-                throw new InternalServerError('SECRET_KEY is not defined');
+                throw new appError('SECRET_KEY is not defined',404);
             }
             const decoded = jwt.verify(token, SECRET_KEY) as { id: Types.ObjectId, role: string }
 
             if (!decoded.role || decoded.role !== 'admin') {
-                throw new InternalServerError('Forbbiden');
+                throw new appError('Forbbiden',403);
             }
             req.id = decoded.id;
             req.role = decoded.role;
             next();
-        } catch (error: any) {
-            const customError: BaseError = ErrorHandler.handleError(error);
-            res.status(customError.statusCode).json({
-                error: {
-                    message: customError.message
-                }
-            });
-        }
+        } catch (error:any) {
+            next(error)
+         }
     }
 
 
@@ -82,28 +72,23 @@ export class authentication {
         try {
             let token = req.header("Authorization");
             if (!token) {
-                throw new InternalServerError('UnAuthorized');
+                throw new appError('UnAuthorized',401);
             }
             token = token!.replace("Bearer ", "")
             if (!SECRET_KEY) {
-                throw new InternalServerError('SECRET_KEY is not defined');
+                throw new appError('SECRET_KEY is not defined',404);
             }
             const decoded = jwt.verify(token, SECRET_KEY) as { id: Types.ObjectId, role: string }
 
             if (!decoded.role || decoded.role !== 'author') {
-                throw new InternalServerError('Forbbiden');
+                throw new appError('Forbbiden',403);
             }
             req.id = decoded.id;
             req.role = decoded.role;
             next();
-        } catch (error: any) {
-            const customError: BaseError = ErrorHandler.handleError(error);
-            res.status(customError.statusCode).json({
-                error: {
-                    message: customError.message
-                }
-            });
-        }
+        } catch (error:any) {
+            next(error)
+         }
     }
 
 }

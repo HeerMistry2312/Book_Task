@@ -1,37 +1,44 @@
-export class BaseError extends Error {
+
+import { Request, Response, NextFunction } from 'express';
+
+export interface customError {
+    message: string;
+    statusCode: number;
+}
+
+export class appError extends Error implements customError {
     statusCode: number;
 
     constructor(message: string, statusCode: number) {
         super(message);
+        this.name = this.constructor.name;
         this.statusCode = statusCode;
+        Error.captureStackTrace(this, this.constructor);
     }
 }
 
-export class InternalServerError extends BaseError {
-    constructor(message: string) {
-        super(message, 500);
+export const errorHandlerMiddleware = (
+    error: Error,
+    req: Request,
+    res: Response,
+    next: NextFunction
+) => {
+    let handledError: customError = {
+        message: 'Internal Server Error',
+        statusCode: 500
+    };
+
+    if (error instanceof appError) {
+        handledError = {
+            message: error.message,
+            statusCode: error.statusCode
+        };
     }
-}
 
-export class BadRequestError extends BaseError {
-    constructor(message: string) {
-        super(message, 400);
-    }
-}
-
-// Error handling class
-export class ErrorHandler {
-    static handleError(error: Error): BaseError {
-
-        console.error(error);
-        if (error instanceof InternalServerError) {
-            return error;
-        } else if (error instanceof BadRequestError) {
-            return error;
-        } else {
-            return new InternalServerError('Internal Server Error');
+    res.status(handledError.statusCode).json({
+        error: {
+            message: handledError.message,
+            statusCode: handledError.statusCode
         }
-    }
-}
-
-
+    });
+};

@@ -1,6 +1,6 @@
 import User from "../model/user.model";
 import {  Role } from "../interfaces/user.interface"
-import { InternalServerError } from "../error/errorHandler";
+import { appError } from "../error/errorHandler";
 import Book from "../model/book.model";
 import { Types } from "mongoose";
 import Category from "../model/category.model";
@@ -48,10 +48,10 @@ export class authorService {
   ): Promise<object | null> {
     let book = await Book.findOne({ title: id });
     if (!book) {
-      throw new InternalServerError("Book Not Found");
+      throw new appError("Book Not Found",404);
     }
     if (book.author.toString() !== author) {
-      throw new InternalServerError("You are not authorized to edit this book");
+      throw new appError("You are not authorized to edit this book",401);
     }
     const { title, categories, description, price } = body;
     // const categoryIds: Types.ObjectId[] | undefined | CategoryInterface[] = categories !== undefined ? [] : book.categories;
@@ -103,11 +103,11 @@ export class authorService {
   ): Promise<object | null> {
     let book = await Book.findOne({ title: id, author: author });
     if (!book) {
-      throw new InternalServerError("Book Not FOund");
+      throw new appError("Book Not FOund",404);
     }
     if (book.author.toString() !== author) {
-      throw new InternalServerError(
-        "You are not authorized to delete this book"
+      throw new appError(
+        "You are not authorized to delete this book",401
       );
     }
     book = await Book.findByIdAndDelete(book._id)
@@ -125,7 +125,7 @@ export class authorService {
     const totalCount = await Book.countDocuments({ author: author });
     const totalPages = Math.ceil(totalCount / pageSize);
     if (page < 1 || page > totalPages) {
-      throw new InternalServerError("Category Not FOund");
+      throw new appError("Category Not FOund",404);
     }
     const skip = (page - 1) * pageSize;
     let book = await Book.find({ author: author })
@@ -134,7 +134,7 @@ export class authorService {
       .populate({ path: "author", select: ["username", "-_id"] })
       .populate({ path: "categories", select: ["name", "-_id"] });
     if (!book) {
-      throw new InternalServerError("Book Not Found");
+      throw new appError("Book Not Found",404);
     }
     return {
       books: book,
@@ -150,13 +150,13 @@ export class authorService {
   ): Promise<object | null> {
     let seekauthor = await User.findOne({ _id: author_id, role: Role.Author });
     if (!seekauthor) {
-      throw new InternalServerError("Author Not Found");
+      throw new appError("Author Not Found",404);
     }
     const book = await Book.find({ author: seekauthor._id, title: name })
       .populate({ path: "author", select: ["username", "-_id"] })
       .populate({ path: "categories", select: ["name", "-_id"] });
     if (!book) {
-      throw new InternalServerError("Book Not Found");
+      throw new appError("Book Not Found",404);
     }
     return book;
   }

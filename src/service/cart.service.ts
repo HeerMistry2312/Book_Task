@@ -6,7 +6,7 @@ import { Types } from 'mongoose';
 import fs from "fs";
 import PDFDocument from "pdfkit";
 import path from "path";
-import { InternalServerError } from '../error/errorHandler';
+import { appError } from "../error/errorHandler";
 
 export class cartService {
     public static async goToCart(id: string): Promise<object> {
@@ -22,7 +22,7 @@ export class cartService {
         }
         )
         if (!cart) {
-            throw new InternalServerError('Cart is Empty');
+            throw new appError('Cart is Empty',404);
         }
         return cart
     }
@@ -31,7 +31,7 @@ export class cartService {
     public static async addToCart(id: string, bookName: string, quantity: number): Promise<object> {
         const book = await Book.findOne({ title: bookName })
         if (!book) {
-            throw new InternalServerError('Book not Found');
+            throw new appError('Book not Found',404);
         }
         const cartItem: cartItemInterface = {
             book: new Types.ObjectId(book._id),
@@ -67,7 +67,7 @@ export class cartService {
     public static async decrementBook(id: string, bookName: string): Promise<cartInterface | object> {
         const book = await Book.findOne({ title: bookName });
         if (!book) {
-            throw new InternalServerError('Book Not Found');
+            throw new appError('Book Not Found',404);
         }
         let cart = await Cart.findOne({ userId: id }).populate({
             path: 'books.book',
@@ -81,11 +81,11 @@ export class cartService {
         }
         );
         if (!cart) {
-            throw new InternalServerError('Cart Not Found');
+            throw new appError('Cart Not Found',404);
         }
         const index = cart.books.findIndex(item => item.book._id.equals(book._id));
         if (index === -1) {
-            throw new InternalServerError('book not found in cart');
+            throw new appError('book not found in cart',404);
         }
         cart.books[index].quantity--;
         if (cart.books[index].quantity === 0) {
@@ -99,7 +99,7 @@ export class cartService {
     public static async removeBook(id: string, bookName: string): Promise<cartInterface | object> {
         const book = await Book.findOne({ title: bookName });
         if (!book) {
-            throw new InternalServerError('User Not Found');
+            throw new appError('User Not Found',404);
         }
         let cart = await Cart.findOne({ userId: id }).populate({
             path: 'books.book',
@@ -113,11 +113,11 @@ export class cartService {
         }
         );
         if (!cart) {
-            throw new InternalServerError('Cart Not Found');
+            throw new appError('Cart Not Found',404);
         }
         const index = cart.books.findIndex(item => item.book._id.equals(book._id));
         if (index === -1) {
-            throw new InternalServerError('Book Not Found in Cart');
+            throw new appError('Book Not Found in Cart',404);
         }
         cart.books.splice(index, 1);
         cart = await cart.save();
@@ -139,7 +139,7 @@ export class cartService {
         }
         );
         if (!cart) {
-            throw new InternalServerError('Cart Not Found');
+            throw new appError('Cart Not Found',404);
         }
         cart.books = []
         cart = await cart.save()
@@ -150,7 +150,7 @@ export class cartService {
     public static async downloadFile(id: string): Promise<string> {
         const cart = await Cart.findOne({ userId: id });
         if (!cart) {
-            throw new InternalServerError('Cart Not Found');
+            throw new appError('Cart Not Found',404);
         }
         const user = await User.findOne({ _id: id });
         const doc = new PDFDocument();

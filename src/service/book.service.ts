@@ -1,7 +1,7 @@
 import Book from '../model/book.model';
 import User from '../model/user.model';
 import { Role } from '../interfaces/user.interface';
-import { InternalServerError } from '../error/errorHandler';
+import { appError } from "../error/errorHandler";
 import Category from '../model/category.model';
 import { Types } from 'mongoose';
 
@@ -10,7 +10,7 @@ export class bookService {
         const totalCount = await Book.countDocuments({ title: id });
         const totalPages = Math.ceil(totalCount / pageSize);
         if (page < 1 || page > totalPages) {
-            throw new InternalServerError('Invalid page number');
+            throw new appError('Invalid page number',400);
         }
         const skip = (page - 1) * pageSize;
         let book = await Book.find({ title: id }).skip(skip).limit(pageSize).populate({ path: 'author', select: ['username','-_id'] }).populate({
@@ -18,7 +18,7 @@ export class bookService {
             select: ['name','-_id']
         }).select('-_id')
         if (!book) {
-            throw new InternalServerError('Book not Found');
+            throw new appError('Book not Found',404);
         }
         return {
             books: book,
@@ -33,7 +33,7 @@ export class bookService {
         const totalCount = await Book.countDocuments();
         const totalPages = Math.ceil(totalCount / pageSize);
         if (page < 1 || page > totalPages) {
-            throw new InternalServerError('Invalid page number');
+            throw new appError('Invalid page number',400);
         }
         const skip = (page - 1) * pageSize;
         let book = await Book.find().skip(skip).limit(pageSize).populate({ path: 'author', select: ['username','-_id'] }).populate({
@@ -41,7 +41,7 @@ export class bookService {
             select: ['name','-_id']
         }).select('-_id')
         if (!book) {
-            throw new InternalServerError('Book not Found');
+            throw new appError('Book not Found',404);
         }
         return {
             books: book,
@@ -58,7 +58,7 @@ export class bookService {
         const totalCount = await Book.countDocuments({ categories: categoryid });
         const totalPages = Math.ceil(totalCount / pageSize);
         if (page < 1 || page > totalPages) {
-            throw new InternalServerError('Category Not FOund');
+            throw new appError('Category Not FOund',404);
         }
         const skip = (page - 1) * pageSize;
         const book = await Book.find({ categories: categoryid }).skip(skip).limit(pageSize).populate({ path: 'author', select: ['username','-_id'] }).populate({
@@ -66,7 +66,7 @@ export class bookService {
             select: ['name','-_id']
         }).select('-_id');
         if (!book) {
-            throw new InternalServerError('Book not Found');
+            throw new appError('Book not Found',404);
         }
         return {
             books: book,
@@ -80,12 +80,12 @@ export class bookService {
     public static async showByAuthor(id: string, page: number, pageSize: number): Promise<Object> {
         let author = await User.findOne({ username: id, role: Role.Author })
         if (!author) {
-            throw new InternalServerError(`No Author found with name of ${id}`);
+            throw new appError(`No Author found with name of ${id}`,404);
         }
         const totalCount = await Book.countDocuments({ author: author._id });
         const totalPages = Math.ceil(totalCount / pageSize);
         if (page < 1 || page > totalPages) {
-            throw new InternalServerError('Author Not FOund');
+            throw new appError('Author Not FOund',404);
         }
         const skip = (page - 1) * pageSize;
         const book = await Book.find({ author: author._id }).skip(skip).limit(pageSize).populate({ path: 'author', select:  ['username','-_id'] }).populate({
@@ -93,7 +93,7 @@ export class bookService {
             select: ['name','-_id']
         }).select('-_id')
         if (!book) {
-            throw new InternalServerError(`No Book found with name of author as ${id}`);
+            throw new appError(`No Book found with name of author as ${id}`,404);
         }
         return {
             books: book,

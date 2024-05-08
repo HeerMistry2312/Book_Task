@@ -1,4 +1,4 @@
-import { InternalServerError } from "../error/errorHandler";
+import { appError } from "../error/errorHandler";
 import User from "../model/user.model";
 import { Role } from "../interfaces/user.interface"
 import Book from "../model/book.model";
@@ -11,10 +11,10 @@ export class adminService {
   public static async approveAuthor(id: string): Promise<object> {
     let user = await User.findByIdAndUpdate(id);
     if (!user) {
-      throw new InternalServerError("User not Found");
+      throw new appError("User not Found",404);
     }
     if (user.role !== Role.Author) {
-      throw new InternalServerError("User Not Register as Author");
+      throw new appError("User Not Register as Author",401);
     }
     return { data: user };
   }
@@ -22,10 +22,10 @@ export class adminService {
   public static async approveAdmin(id: string): Promise<object> {
     let user = await User.findByIdAndUpdate(id, { isApproved: true });
     if (!user) {
-      throw new InternalServerError("User not Found");
+      throw new appError("User not Found",404);
     }
     if (user.role !== Role.Admin) {
-      throw new InternalServerError("User Not Register as Admin");
+      throw new appError("User Not Register as Admin",401);
     }
     return { data: user };
   }
@@ -34,7 +34,7 @@ export class adminService {
     const { title, author, categories, description, price } = data;
     const authid = await User.findOne({ username: author });
     if (!authid) {
-      throw new InternalServerError("Author Not Found");
+      throw new appError("Author Not Found",404);
     }
     const id: Types.ObjectId = authid!._id;
     //const categoryIds: Types.ObjectId[] = [];
@@ -75,7 +75,7 @@ export class adminService {
     let authid1: Types.ObjectId | undefined;
     let book = await Book.findOne({ title: id });
     if (!book) {
-      throw new InternalServerError("Book Not Found");
+      throw new appError("Book Not Found",404);
     }
     if (author !== undefined) {
       const authid = await User.findOne({ username: author });
@@ -122,7 +122,7 @@ export class adminService {
       .populate({ path: "author", select: ["username", "-_id"] })
       .populate({ path: "categories", select: ["name", "-_id"] });
     if (!update) {
-      throw new InternalServerError("Book Not Found");
+      throw new appError("Book Not Found",404);
     }
     return { message: "Update Success", data: update };
   }
@@ -134,7 +134,7 @@ export class adminService {
       .populate({ path: "author", select: ["username", "-_id"] })
       .populate({ path: "categories", select: ["name", "-_id"] });
     if (!book) {
-      throw new InternalServerError("Book Not Found");
+      throw new appError("Book Not Found",404);
     }
     return { message: "Delete Success", data: book };
   }
@@ -146,14 +146,14 @@ export class adminService {
     const totalCount = await User.countDocuments({ isApproved: false });
     const totalPages = Math.ceil(totalCount / pageSize);
     if (page < 1 || page > totalPages) {
-      throw new InternalServerError("Invalid page number");
+      throw new appError("Invalid page number",400);
     }
     const skip = (page - 1) * pageSize;
     const user = await User.find({ isApproved: false })
       .skip(skip)
       .limit(pageSize);
     if (!user) {
-      throw new InternalServerError("User not Found");
+      throw new appError("User not Found",404);
     }
     return {
       pendingRequests: user,
