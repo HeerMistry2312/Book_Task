@@ -2,7 +2,7 @@ import { InternalServerError } from '../error/errorHandler';
 import User, { UserInterface } from "../model/userModel";
 import Book, { BookInterface } from '../model/bookModel';
 import { Types } from 'mongoose';
-import Category from '../model/category';
+import Category,{CategoryInterface} from '../model/category';
 
 export class AdminService {
     public static async ApproveAuthor(id: string): Promise<object> {
@@ -50,11 +50,15 @@ export class AdminService {
     public static async UpdateBook(id: string, body: BookInterface): Promise<object> {
         const { title, author, categories, description, price } = body
         let authid1: Types.ObjectId | undefined
+        let book = await Book.findOne({title: id})
+        if (!book) {
+            throw new InternalServerError('Book Not Found');
+        }
         if (author !== undefined) {
             const authid = await User.findOne({ username: author })
             authid1 = authid!._id
         }
-        const categoryIds: Types.ObjectId[] | undefined = [];
+        const categoryIds: Types.ObjectId[] | undefined | CategoryInterface[] = categories !== undefined ? [] : book.categories;
         if (categories !== undefined) {
             for (const categoryName of categories) {
                 let category = await Category.findOne({ name: categoryName });
@@ -64,13 +68,14 @@ export class AdminService {
                 categoryIds.push(category._id);
             }
         }
-        let update = await Book.findByIdAndUpdate(id, {
+        let update = await Book.findByIdAndUpdate(book._id, {
             title,
             author: authid1 || undefined,
             categories: categoryIds || undefined,
             description,
             price,
-        }, { new: true })
+        }, { new: true }).populate({ path: 'author', select: 'username' })
+        .populate({ path: 'categories', select: 'name' });
         if (!update) {
             throw new InternalServerError('Book Not Found');
         }
@@ -81,7 +86,8 @@ export class AdminService {
     public static async DeleteBook(id: string): Promise<object> {
         const bookid = await Book.findOne({ title: id })
         const id1: Types.ObjectId = bookid!._id
-        const book = await Book.findByIdAndDelete({ _id: id1 })
+        const book = await Book.findByIdAndDelete({ _id: id1 }).populate({ path: 'author', select: 'username' }) // Populate author name
+        .populate({ path: 'categories', select: 'name' })
         if (!book) {
             throw new InternalServerError('Book Not Found');
         }

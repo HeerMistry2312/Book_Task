@@ -2,7 +2,7 @@ import User, { UserInterface } from "../model/userModel";
 import { InternalServerError } from '../error/errorHandler';
 import Book, { BookInterface } from '../model/bookModel';
 import { Types } from 'mongoose';
-import Category from '../model/category';
+import Category,{CategoryInterface} from '../model/category';
 export class AuthorService {
     public static async CreateBook(author: string, data: BookInterface): Promise<object> {
         const { title, categories, description, price } = data
@@ -21,7 +21,7 @@ export class AuthorService {
 
 
     public static async UpdateBook(author: string, id: string, body: BookInterface): Promise<object | null> {
-        let book = await Book.findById(id)
+        let book = await Book.findOne({title: id})
         if (!book) {
             throw new InternalServerError('Book Not Found');
         }
@@ -29,7 +29,7 @@ export class AuthorService {
             throw new InternalServerError('You are not authorized to edit this book');
         }
         const { title, categories, description, price } = body
-        const categoryIds: Types.ObjectId[] | undefined = [];
+        const categoryIds: Types.ObjectId[] | undefined | CategoryInterface[] = categories !== undefined ? [] : book.categories;
         if (categories !== undefined) {
             for (const categoryName of categories) {
                 let category = await Category.findOne({ name: categoryName });
@@ -39,20 +39,21 @@ export class AuthorService {
                 categoryIds.push(category._id);
             }
         }
-        book = await Book.findByIdAndUpdate(id, { title: title, author: author, categories: categoryIds || undefined, description: description, price: price }, { new: true }).populate({ path: 'author', select: 'username' })
+        book = await Book.findByIdAndUpdate(book._id, { title: title, author: author, categories: categoryIds || undefined, description: description, price: price }, { new: true }).populate({ path: 'author', select: 'username' }).populate({ path: 'categories', select: 'name' });
         return { message: "Book Updated", data: book }
     }
 
 
     public static async DeleteBook(author: string, id: string): Promise<object | null> {
-        let book = await Book.findById({ _id: id, author: author })
+        let book = await Book.findOne({ title: id, author: author })
         if (!book) {
             throw new InternalServerError('Book Not FOund');
         }
         if (book.author.toString() !== author) {
             throw new InternalServerError('You are not authorized to delete this book');
         }
-        book = await Book.findByIdAndDelete(id)
+        book = await Book.findByIdAndDelete(book._id).populate({ path: 'author', select: 'username' }) // Populate author name
+        .populate({ path: 'categories', select: 'name' })
         return { message: "Book Deleted", deletedData: book }
     }
 
@@ -64,7 +65,7 @@ export class AuthorService {
             throw new InternalServerError('Category Not FOund');
         }
         const skip = (page - 1) * pageSize;
-        let book = await Book.find({ author: author }).skip(skip).limit(pageSize).populate({ path: 'author', select: 'username' })
+        let book = await Book.find({ author: author }).skip(skip).limit(pageSize).populate({ path: 'author', select: 'username' }).populate({ path: 'categories', select: 'name' })
         if (!book) {
             throw new InternalServerError('Book Not Found');
         }
@@ -82,7 +83,7 @@ export class AuthorService {
         if (!seekauthor) {
             throw new InternalServerError('Author Not Found');
         }
-        const book = await Book.find({ author: seekauthor._id, title: name }).populate({ path: 'author', select: 'username' })
+        const book = await Book.find({ author: seekauthor._id, title: name }).populate({ path: 'author', select: 'username' }).populate({ path: 'categories', select: 'name' })
         if (!book) {
             throw new InternalServerError('Book Not Found');
         }
