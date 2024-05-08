@@ -1,7 +1,7 @@
-import { CartControl } from "../controller/cart.controller";
+import { cartControl } from "../controller/cart.controller";
 import express from "express";
-import { Authentication } from "../middleware/authentication";
-export class CartRoute {
+import { authentication } from "../middleware/authentication";
+export class cartRoute {
     private router: express.Router;
 
     constructor() {
@@ -10,12 +10,12 @@ export class CartRoute {
     }
 
     private routes(): void {
-        this.router.get('/', Authentication.authUser, CartControl.goToCart)
-        this.router.post('/add', Authentication.authUser, CartControl.addToCart)
-        this.router.post('/decrement', Authentication.authUser, CartControl.decrementBook)
-        this.router.post('/remove', Authentication.authUser, CartControl.removeBook)
-        this.router.get('/empty', Authentication.authUser, CartControl.emptyCart)
-        this.router.get('/download', Authentication.authUser, CartControl.downloadFile)
+        this.router.get('/', authentication.authUser, cartControl.goToCart)
+        this.router.post('/add', authentication.authUser, cartControl.addToCart)
+        this.router.post('/decrement', authentication.authUser, cartControl.decrementBook)
+        this.router.post('/remove', authentication.authUser, cartControl.removeBook)
+        this.router.get('/empty', authentication.authUser, cartControl.emptyCart)
+        this.router.get('/download', authentication.authUser, cartControl.downloadFile)
     }
 
     public getRoute(): express.Router {

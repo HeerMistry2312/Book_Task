@@ -5,8 +5,8 @@ import { InternalServerError } from '../error/errorHandler';
 import Category from '../model/category.model';
 import { Types } from 'mongoose';
 
-export class BookService {
-    public static async ShowBook(id: string, page: number, pageSize: number): Promise<Object> {
+export class bookService {
+    public static async showBook(id: string, page: number, pageSize: number): Promise<Object> {
         const totalCount = await Book.countDocuments({ title: id });
         const totalPages = Math.ceil(totalCount / pageSize);
         if (page < 1 || page > totalPages) {
@@ -29,7 +29,7 @@ export class BookService {
     }
 
 
-    public static async ShowAllBooks(page: number, pageSize: number): Promise<Object> {
+    public static async showAllBooks(page: number, pageSize: number): Promise<Object> {
         const totalCount = await Book.countDocuments();
         const totalPages = Math.ceil(totalCount / pageSize);
         if (page < 1 || page > totalPages) {
@@ -52,16 +52,16 @@ export class BookService {
     }
 
 
-    public static async ShowByCategory(category: string, page: number, pageSize: number): Promise<Object> {
-        const cat = await Category.findOne({ name: category })
-        let catid: Types.ObjectId = cat!._id
-        const totalCount = await Book.countDocuments({ categories: catid });
+    public static async showByCategory(category: string, page: number, pageSize: number): Promise<Object> {
+        const findCategory = await Category.findOne({ name: category })
+        let categoryid: Types.ObjectId = findCategory!._id
+        const totalCount = await Book.countDocuments({ categories: categoryid });
         const totalPages = Math.ceil(totalCount / pageSize);
         if (page < 1 || page > totalPages) {
             throw new InternalServerError('Category Not FOund');
         }
         const skip = (page - 1) * pageSize;
-        const book = await Book.find({ categories: catid }).skip(skip).limit(pageSize).populate({ path: 'author', select: ['username','-_id'] }).populate({
+        const book = await Book.find({ categories: categoryid }).skip(skip).limit(pageSize).populate({ path: 'author', select: ['username','-_id'] }).populate({
             path: 'categories',
             select: ['name','-_id']
         }).select('-_id');
@@ -77,7 +77,7 @@ export class BookService {
     }
 
 
-    public static async ShowByAuthor(id: string, page: number, pageSize: number): Promise<Object> {
+    public static async showByAuthor(id: string, page: number, pageSize: number): Promise<Object> {
         let author = await User.findOne({ username: id, role: Role.Author })
         if (!author) {
             throw new InternalServerError(`No Author found with name of ${id}`);

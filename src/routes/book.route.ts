@@ -1,7 +1,7 @@
 import { bookControl } from "../controller/book.controller";
 import express from "express";
-import { Authentication } from "../middleware/authentication";
-export class BookRoute {
+import { authentication } from "../middleware/authentication";
+export class bookRoute {
     private router: express.Router;
 
     constructor() {
@@ -10,10 +10,10 @@ export class BookRoute {
     }
 
     private routes(): void {
-        this.router.get('/', Authentication.authUser, bookControl.showAllBooks)
-        this.router.get('/:name', Authentication.authUser, bookControl.showBook)
-        this.router.get('/author/:author', Authentication.authUser, bookControl.showByAuthor)
-        this.router.get('/category/:cat', Authentication.authUser, bookControl.showByCategory)
+        this.router.get('/', authentication.authUser, bookControl.showAllBooks)
+        this.router.get('/:name', authentication.authUser, bookControl.showBook)
+        this.router.get('/author/:author', authentication.authUser, bookControl.showByAuthor)
+        this.router.get('/category/:cat', authentication.authUser, bookControl.showByCategory)
     }
 
     public getRoute(): express.Router {

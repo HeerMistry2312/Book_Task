@@ -8,7 +8,7 @@ import PDFDocument from "pdfkit";
 import path from "path";
 import { InternalServerError } from '../error/errorHandler';
 
-export class CartService {
+export class cartService {
     public static async goToCart(id: string): Promise<object> {
         const cart = await Cart.findOne({ userId: id }).populate({
             path: 'books.book',

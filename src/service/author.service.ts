@@ -6,8 +6,8 @@ import { Types } from "mongoose";
 import Category from "../model/category.model";
 import { BookInterface } from "../interfaces/book.interface";
 import { CategoryInterface } from "../interfaces/category.interface";
-export class AuthorService {
-  public static async CreateBook(
+export class authorService {
+  public static async createBook(
     author: string,
     data: BookInterface
   ): Promise<object> {
@@ -41,7 +41,7 @@ export class AuthorService {
     return { message: "Book Added", data: newBook };
   }
 
-  public static async UpdateBook(
+  public static async updateBook(
     author: string,
     id: string,
     body: BookInterface
@@ -97,7 +97,7 @@ export class AuthorService {
     return { message: "Book Updated", data: book };
   }
 
-  public static async DeleteBook(
+  public static async deleteBook(
     author: string,
     id: string
   ): Promise<object | null> {
@@ -117,7 +117,7 @@ export class AuthorService {
     return { message: "Book Deleted", deletedData: book };
   }
 
-  public static async ShowMyBooks(
+  public static async showMyBooks(
     author: string,
     page: number,
     pageSize: number
@@ -144,7 +144,7 @@ export class AuthorService {
     };
   }
 
-  public static async ShowBook(
+  public static async showBook(
     author_id: string,
     name: string
   ): Promise<object | null> {

@@ -7,8 +7,8 @@ import Category from "../model/category.model";
 import { BookInterface } from "../interfaces/book.interface";
 import { CategoryInterface } from "../interfaces/category.interface";
 
-export class AdminService {
-  public static async ApproveAuthor(id: string): Promise<object> {
+export class adminService {
+  public static async approveAuthor(id: string): Promise<object> {
     let user = await User.findByIdAndUpdate(id);
     if (!user) {
       throw new InternalServerError("User not Found");
@@ -19,18 +19,18 @@ export class AdminService {
     return { data: user };
   }
 
-  public static async ApproveAdmin(id: string): Promise<object> {
+  public static async approveAdmin(id: string): Promise<object> {
     let user = await User.findByIdAndUpdate(id, { isApproved: true });
     if (!user) {
       throw new InternalServerError("User not Found");
     }
-    if (user.role !== "admin") {
+    if (user.role !== Role.Admin) {
       throw new InternalServerError("User Not Register as Admin");
     }
     return { data: user };
   }
 
-  public static async CreateBook(data: BookInterface): Promise<object> {
+  public static async createBook(data: BookInterface): Promise<object> {
     const { title, author, categories, description, price } = data;
     const authid = await User.findOne({ username: author });
     if (!authid) {
@@ -67,7 +67,7 @@ export class AdminService {
     return { message: "Book Created", data: newBook };
   }
 
-  public static async UpdateBook(
+  public static async updateBook(
     id: string,
     body: BookInterface
   ): Promise<object> {
@@ -127,7 +127,7 @@ export class AdminService {
     return { message: "Update Success", data: update };
   }
 
-  public static async DeleteBook(id: string): Promise<object> {
+  public static async deleteBook(id: string): Promise<object> {
     const bookid = await Book.findOne({ title: id });
     const id1: Types.ObjectId = bookid!._id;
     const book = await Book.findByIdAndDelete({ _id: id1 })

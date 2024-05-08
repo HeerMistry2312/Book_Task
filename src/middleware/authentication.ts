@@ -10,7 +10,7 @@ declare module 'express' {
     }
 }
 
-export class Authentication {
+export class authentication {
     public static async authUser(
         req: Request,
         res: Response,

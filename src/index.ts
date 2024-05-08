@@ -1,14 +1,14 @@
 import express from "express";
-import Database from "./config/db";
+import database from "./config/db";
 import session from 'express-session';
 import { SECRET_KEY } from "../src/config/config";
-import { UserRoute } from "./routes/user.route";
-import { AdminRoute } from "./routes/admin.route";
-import { AuthorRoute } from "./routes/author.route";
-import { BookRoute } from "./routes/book.route";
-import { CartRoute } from "./routes/cart.route";
+import { userRoute } from "./routes/user.route";
+import { adminRoute } from "./routes/admin.route";
+import { authorRoute } from "./routes/author.route";
+import { bookRoute } from "./routes/book.route";
+import { cartRoute } from "./routes/cart.route";
 import { InternalServerError } from './error/errorHandler';
-export class App {
+export class app {
     private app: express.Application;
 
     constructor() {
@@ -36,19 +36,19 @@ export class App {
         }));
     }
     private connectDB(): void {
-        new Database();
+        new database();
     }
     private routes(): void {
-        const userRoute = new UserRoute().getRoute()
-        const adminRoute = new AdminRoute().getRoute()
-        const authorRoute = new AuthorRoute().getRoute()
-        const bookRoute = new BookRoute().getRoute()
-        const cartRoute = new CartRoute().getRoute()
-        this.app.use('/', userRoute)
-        this.app.use('/admin', adminRoute)
-        this.app.use('/author', authorRoute)
-        this.app.use('/book', bookRoute)
-        this.app.use('/cart', cartRoute)
+        const user_Route = new userRoute().getRoute()
+        const admin_Route = new adminRoute().getRoute()
+        const author_Route = new authorRoute().getRoute()
+        const book_Route = new bookRoute().getRoute()
+        const cart_Route = new cartRoute().getRoute()
+        this.app.use('/', user_Route)
+        this.app.use('/admin', admin_Route)
+        this.app.use('/author', author_Route)
+        this.app.use('/book', book_Route)
+        this.app.use('/cart', cart_Route)
     }
     public start(port: string | undefined): void {
         this.app.listen(port, () => {

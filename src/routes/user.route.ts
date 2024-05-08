@@ -1,7 +1,7 @@
 import { userControl } from "../controller/user.controller";
 import express from "express";
-import { Authentication } from "../middleware/authentication";
-export class UserRoute {
+import { authentication } from "../middleware/authentication";
+export class userRoute {
     private router: express.Router;
 
     constructor() {
@@ -11,10 +11,10 @@ export class UserRoute {
 
     private routes(): void {
         this.router.post('/signup', userControl.signUp)
-        this.router.post('/login', userControl.Login)
-        this.router.get('/logout', Authentication.authUser, userControl.logout)
-        this.router.patch('/edit', Authentication.authUser, userControl.editAccount)
-        this.router.delete('/delete', Authentication.authUser, userControl.deleteAccount)
+        this.router.post('/login', userControl.login)
+        this.router.get('/logout', authentication.authUser, userControl.logout)
+        this.router.patch('/edit', authentication.authUser, userControl.editAccount)
+        this.router.delete('/delete', authentication.authUser, userControl.deleteAccount)
 
     }
 

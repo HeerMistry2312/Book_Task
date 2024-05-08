@@ -6,9 +6,9 @@ import bcrypt from "bcrypt";
 import { Types } from "mongoose";
 import { InternalServerError } from '../error/errorHandler';
 import { SECRET_KEY } from "../config/config";
-export class UserService {
+export class userService {
 
-    public static async SignUp(username: string, password: string, email: string, role: Role): Promise<object> {
+    public static async signUp(username: string, password: string, email: string, role: Role): Promise<object> {
         if (await User.findOne({ email })) {
             throw new InternalServerError('User Alredy Exist');
         }
@@ -45,7 +45,7 @@ export class UserService {
 
 
 
-    public static async Logout(id: Types.ObjectId | undefined): Promise<void> {
+    public static async logout(id: Types.ObjectId | undefined): Promise<void> {
         const user = await User.findById({ _id: id });
         if (!user) {
             throw new InternalServerError('User Not logged in');
@@ -71,15 +71,15 @@ export class UserService {
         if (!user) {
             throw new InternalServerError('User Not logged in');
         }
-        const del = await User.findByIdAndDelete({ _id: id })
-        if (!del) {
+        const deleted = await User.findByIdAndDelete({ _id: id })
+        if (!deleted) {
             throw new InternalServerError('User Not Found');
         }
-        const delCart = await Cart.findOneAndDelete({ userId: id })
-        if (!delCart) {
+        const deletedCart = await Cart.findOneAndDelete({ userId: id })
+        if (!deletedCart) {
             throw new InternalServerError('Cart is Empty');
         }
-        return { message: "User Deleted", deletedUserData: del, deletedCartData: delCart }
+        return { message: "User Deleted", deletedUserData: deleted, deletedCartData: deletedCart }
     }
 
 }
