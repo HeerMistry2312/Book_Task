@@ -3,9 +3,9 @@ import {  Role } from "../interfaces/user.interface"
 import { AppError } from "../utils/customErrorHandler";
 import Book from "../model/book.model";
 import { Types } from "mongoose";
-import Category from "../model/category.model";
+import Category from '../model/category.model';
 import { BookInterface } from "../interfaces/book.interface";
-import { CategoryInterface } from "../interfaces/category.interface";
+import { CategoryInterface } from '../interfaces/category.interface';
 import StatusConstants from "../constant/status.constant";
 export class AuthorService {
   public static async createBook(
@@ -48,38 +48,22 @@ export class AuthorService {
     }
     const { title, categories, description, price } = body;
 
-    const categoryIds: Types.ObjectId[] | undefined | CategoryInterface[] =
-      categories !== undefined ? [] : book.categories;
-
-    if (categories !== undefined) {
-      const categoryPromises = categories.map(async (categoryName) => {
-        let category = await Category.findOne({ name: categoryName });
-        if (!category) {
-          category = await Category.create({ name: categoryName });
-        }
-        return category._id;
-      });
-
-      const resolvedCategoryIds = await Promise.all(categoryPromises);
-      categoryIds.push(...resolvedCategoryIds);
+    if(body.categories){
+      const fetchid = await Category.find({name:{$in:[...categories]}})
+      const categoriesID = fetchid.map(i => i._id)
+      body.categories=categoriesID
     }
-
-
 
     book = await Book.findByIdAndUpdate(
       book._id,
       {
-        title: title,
-        author: author,
-        categories: categoryIds || undefined,
-        description: description,
-        price: price,
+        ...body
       },
       { new: true }
     )
       .populate({ path: "author", select: ["username", "-_id"] })
       .populate({ path: "categories", select: ["name", "-_id"] });
-    return { message: "Book Updated", data: book };
+     return { message: "Book Updated", data: book };
   }
 
   public static async deleteBook(
