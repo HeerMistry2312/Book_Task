@@ -1,4 +1,4 @@
-import { app } from "../index";
+import { App } from "../index";
 import { PORT } from "../config/config";
-const server = new app();
+const server = new App();
 server.start(PORT);

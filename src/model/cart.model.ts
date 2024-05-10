@@ -1,20 +1,20 @@
 import mongoose, { Document, Schema } from 'mongoose';
 import Book from './book.model';
-import { cartItemInterface, cartInterface } from '../interfaces/cart.interface';
+import { CartItemInterface, CartInterface } from '../interfaces/cart.interface';
 
-const cartItemSchema: Schema<cartItemInterface> = new Schema({
+const cartItemSchema: Schema<CartItemInterface> = new Schema({
     book: { type: Schema.Types.ObjectId, ref: 'Book', required: true },
     quantity: { type: Number, required: true, default: 1 },
     totalPrice: { type: Number }
 })
 
-const cartSchema: Schema<cartInterface> = new Schema({
+const cartSchema: Schema<CartInterface> = new Schema({
     userId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
     books: [cartItemSchema],
     totalAmount: { type: Number, default: 0 }
 })
 
-cartSchema.pre<cartInterface>('save', async function (next) {
+cartSchema.pre<CartInterface>('save', async function (next) {
     let totalAmount = 0;
     for (const book of this.books) {
         const item = await Book.findById(book.book)
@@ -27,5 +27,5 @@ cartSchema.pre<cartInterface>('save', async function (next) {
     next();
 })
 
-const Cart = mongoose.model<cartInterface>('Cart', cartSchema);
+const Cart = mongoose.model<CartInterface>('Cart', cartSchema);
 export default Cart;

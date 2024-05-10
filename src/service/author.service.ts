@@ -1,25 +1,18 @@
 import User from "../model/user.model";
 import {  Role } from "../interfaces/user.interface"
-import { appError } from "../error/errorHandler";
+import { AppError } from "../utils/customErrorHandler";
 import Book from "../model/book.model";
 import { Types } from "mongoose";
 import Category from "../model/category.model";
 import { BookInterface } from "../interfaces/book.interface";
 import { CategoryInterface } from "../interfaces/category.interface";
-export class authorService {
+import StatusConstants from "../constant/status.constant";
+export class AuthorService {
   public static async createBook(
     author: string,
     data: BookInterface
   ): Promise<object> {
     const { title, categories, description, price } = data;
-    // const categoryIds: Types.ObjectId[] = [];
-    // for (const categoryName of categories) {
-    //     let category = await Category.findOne({ name: categoryName });
-    //     if (!category) {
-    //         category = await Category.create({ name: categoryName });
-    //     }
-    //     categoryIds.push(category._id);
-    // }
 
     const categoryPromises = categories.map(async (categoryName) => {
       let category = await Category.findOne({ name: categoryName });
@@ -48,22 +41,12 @@ export class authorService {
   ): Promise<object | null> {
     let book = await Book.findOne({ title: id });
     if (!book) {
-      throw new appError("Book Not Found",404);
+      throw new AppError(StatusConstants.NOT_FOUND.body.message,StatusConstants.NOT_FOUND.httpStatusCode);
     }
     if (book.author.toString() !== author) {
-      throw new appError("You are not authorized to edit this book",401);
+      throw new AppError(StatusConstants.BAD_REQUEST.body.message,StatusConstants.BAD_REQUEST.httpStatusCode);
     }
     const { title, categories, description, price } = body;
-    // const categoryIds: Types.ObjectId[] | undefined | CategoryInterface[] = categories !== undefined ? [] : book.categories;
-    // if (categories !== undefined) {
-    //     for (const categoryName of categories) {
-    //         let category = await Category.findOne({ name: categoryName });
-    //         if (!category) {
-    //             category = await Category.create({ name: categoryName });
-    //         }
-    //         categoryIds.push(category._id);
-    //     }
-    // }
 
     const categoryIds: Types.ObjectId[] | undefined | CategoryInterface[] =
       categories !== undefined ? [] : book.categories;
@@ -80,6 +63,8 @@ export class authorService {
       const resolvedCategoryIds = await Promise.all(categoryPromises);
       categoryIds.push(...resolvedCategoryIds);
     }
+
+
 
     book = await Book.findByIdAndUpdate(
       book._id,
@@ -103,11 +88,11 @@ export class authorService {
   ): Promise<object | null> {
     let book = await Book.findOne({ title: id, author: author });
     if (!book) {
-      throw new appError("Book Not FOund",404);
+      throw new AppError(StatusConstants.NOT_FOUND.body.message,StatusConstants.NOT_FOUND.httpStatusCode);
     }
     if (book.author.toString() !== author) {
-      throw new appError(
-        "You are not authorized to delete this book",401
+      throw new AppError(
+        StatusConstants.BAD_REQUEST.body.message,StatusConstants.BAD_REQUEST.httpStatusCode
       );
     }
     book = await Book.findByIdAndDelete(book._id)
@@ -125,7 +110,7 @@ export class authorService {
     const totalCount = await Book.countDocuments({ author: author });
     const totalPages = Math.ceil(totalCount / pageSize);
     if (page < 1 || page > totalPages) {
-      throw new appError("Category Not FOund",404);
+      throw new AppError(StatusConstants.NOT_FOUND.body.message,StatusConstants.NOT_FOUND.httpStatusCode);
     }
     const skip = (page - 1) * pageSize;
     let book = await Book.find({ author: author })
@@ -134,7 +119,7 @@ export class authorService {
       .populate({ path: "author", select: ["username", "-_id"] })
       .populate({ path: "categories", select: ["name", "-_id"] });
     if (!book) {
-      throw new appError("Book Not Found",404);
+      throw new AppError(StatusConstants.NOT_FOUND.body.message,StatusConstants.NOT_FOUND.httpStatusCode);
     }
     return {
       books: book,
@@ -150,13 +135,13 @@ export class authorService {
   ): Promise<object | null> {
     let seekauthor = await User.findOne({ _id: author_id, role: Role.Author });
     if (!seekauthor) {
-      throw new appError("Author Not Found",404);
+      throw new AppError(StatusConstants.NOT_FOUND.body.message,StatusConstants.NOT_FOUND.httpStatusCode);
     }
     const book = await Book.find({ author: seekauthor._id, title: name })
       .populate({ path: "author", select: ["username", "-_id"] })
       .populate({ path: "categories", select: ["name", "-_id"] });
     if (!book) {
-      throw new appError("Book Not Found",404);
+      throw new AppError(StatusConstants.NOT_FOUND.body.message,StatusConstants.NOT_FOUND.httpStatusCode);
     }
     return book;
   }

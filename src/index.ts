@@ -1,14 +1,16 @@
 import express from "express";
-import database from "./config/db";
+import Database from "./config/db";
 import session from 'express-session';
 import { SECRET_KEY } from "../src/config/config";
-import { userRoute } from "./routes/user.route";
-import { adminRoute } from "./routes/admin.route";
-import { authorRoute } from "./routes/author.route";
-import { bookRoute } from "./routes/book.route";
-import { cartRoute } from "./routes/cart.route";
-import { appError, errorHandlerMiddleware } from "./error/errorHandler";
-export class app {
+import { UserRoute } from "./routes/user.route";
+import { AdminRoute } from "./routes/admin.route";
+import { AuthorRoute } from "./routes/author.route";
+import { BookRoute } from "./routes/book.route";
+import { CartRoute } from "./routes/cart.route";
+import { errorHandlerMiddleware } from "./middleware/errorHandler";
+import { AppError } from "./utils/customErrorHandler";
+import StatusConstants from "./constant/status.constant";
+export class App {
     private app: express.Application;
 
     constructor() {
@@ -22,7 +24,7 @@ export class app {
         this.app.use(express.json());
 
         if (!SECRET_KEY) {
-            throw new appError('SECRET_KEY is not defined',404);
+            throw new AppError(StatusConstants.NOT_FOUND.body.message,StatusConstants.NOT_FOUND.httpStatusCode);
         }
         this.app.use(session({
             secret: SECRET_KEY,
@@ -37,19 +39,19 @@ export class app {
         this.app.use(errorHandlerMiddleware)
     }
     private connectDB(): void {
-        new database();
+        new Database();
     }
     private routes(): void {
-        const user_Route = new userRoute().getRoute()
-        const admin_Route = new adminRoute().getRoute()
-        const author_Route = new authorRoute().getRoute()
-        const book_Route = new bookRoute().getRoute()
-        const cart_Route = new cartRoute().getRoute()
-        this.app.use('/', user_Route)
-        this.app.use('/admin', admin_Route)
-        this.app.use('/author', author_Route)
-        this.app.use('/book', book_Route)
-        this.app.use('/cart', cart_Route)
+        const userRoute = new UserRoute().getRoute()
+        const adminRoute = new AdminRoute().getRoute()
+        const authorRoute = new AuthorRoute().getRoute()
+        const bookRoute = new BookRoute().getRoute()
+        const cartRoute = new CartRoute().getRoute()
+        this.app.use('/', userRoute)
+        this.app.use('/admin', adminRoute)
+        this.app.use('/author', authorRoute)
+        this.app.use('/book', bookRoute)
+        this.app.use('/cart', cartRoute)
     }
     public start(port: string | undefined): void {
         this.app.listen(port, () => {

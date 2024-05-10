@@ -1,7 +1,7 @@
 import mongoose from 'mongoose';
 import { MONGODB_URI } from './config';
 
-class database {
+class Database {
     constructor() {
         this.connectDB();
     }
@@ -21,4 +21,4 @@ class database {
     }
 }
 
-export default database;
+export default Database;

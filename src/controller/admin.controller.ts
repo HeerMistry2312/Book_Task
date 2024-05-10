@@ -1,12 +1,13 @@
 import { Request, Response , NextFunction} from "express";
-import { adminService } from "../service/admin.service";
+import { AdminService } from "../service/admin.service";
 import { BookInterface } from "../interfaces/book.interface";
-export class adminControl {
+import StatusCode from "../enum/statusCode";
+export class AdminControl {
     public static async approveAuthor(req: Request, res: Response,next: NextFunction): Promise<void> {
         try {
             const id = req.params.id
-            let user = await adminService.approveAuthor(id)
-            res.status(200).send(user)
+            let user = await AdminService.approveAuthor(id)
+            res.status(StatusCode.OK).send(user)
         }  catch (error:any) {
             next(error)
          }
@@ -16,8 +17,8 @@ export class adminControl {
     public static async approveAdmin(req: Request, res: Response, next: NextFunction): Promise<void> {
         try {
             const id = req.params.id
-            let user = await adminService.approveAdmin(id)
-            res.status(200).send(user)
+            let user = await AdminService.approveAdmin(id)
+            res.status(StatusCode.OK).send(user)
         }  catch (error:any) {
             next(error)
          }
@@ -27,8 +28,8 @@ export class adminControl {
     public static async createBook(req: Request, res: Response, next: NextFunction): Promise<void> {
         try {
             const Data: BookInterface = req.body;
-            let book = await adminService.createBook(Data)
-            res.status(200).send(book)
+            let book = await AdminService.createBook(Data)
+            res.status(StatusCode.OK).send(book)
         }  catch (error:any) {
             next(error)
          }
@@ -39,8 +40,8 @@ export class adminControl {
         try {
             const id = req.params.id;
             const body: BookInterface = req.body;
-            let update = await adminService.updateBook(id, body)
-            res.status(200).send(update)
+            let update = await AdminService.updateBook(id, body)
+            res.status(StatusCode.OK).send(update)
         }  catch (error:any) {
             next(error)
          }
@@ -50,8 +51,8 @@ export class adminControl {
     public static async deleteBook(req: Request, res: Response, next: NextFunction): Promise<void> {
         try {
             const id = req.params.id
-            let book = await adminService.deleteBook(id)
-            res.status(200).send(book)
+            let book = await AdminService.deleteBook(id)
+            res.status(StatusCode.OK).send(book)
         }  catch (error:any) {
             next(error)
          }
@@ -60,8 +61,8 @@ export class adminControl {
     public static async listofPendingReq(req: Request, res: Response, next: NextFunction): Promise<void> {
         try {
             const { page = 1, pageSize = 2 } = req.query;
-            const un = await adminService.listofPendingReq(+page, +pageSize)
-            res.status(200).send(un)
+            const un = await AdminService.listofPendingReq(+page, +pageSize)
+            res.status(StatusCode.OK).send(un)
         }  catch (error:any) {
             next(error)
          }

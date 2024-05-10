@@ -1,12 +1,13 @@
 import { NextFunction, Request, Response } from "express";
-import { cartService } from "../service/cart.service";
-export class cartControl {
+import { CartService } from "../service/cart.service";
+import StatusCode from "../enum/statusCode";
+export class CartControl {
     public static async goToCart(req: Request, res: Response, next: NextFunction): Promise<void> {
         try {
             const id = req.id!.toString()
-            const cart = await cartService.goToCart(id)
+            const cart = await CartService.goToCart(id)
 
-            res.status(200).send(cart)
+            res.status(StatusCode.OK).send(cart)
 
         } catch (error:any) {
             next(error)
@@ -18,8 +19,8 @@ export class cartControl {
         try {
             const id = req.id!.toString()
             const { bookName, quantity } = req.body
-            const cart = await cartService.addToCart(id, bookName, quantity)
-            res.status(200).send(cart)
+            const cart = await CartService.addToCart(id, bookName, quantity)
+            res.status(StatusCode.OK).send(cart)
 
         }catch (error:any) {
             next(error)
@@ -31,8 +32,8 @@ export class cartControl {
         try {
             const id = req.id!.toString()
             const { bookName } = req.body
-            const cart = await cartService.decrementBook(id, bookName)
-            res.status(200).send(cart)
+            const cart = await CartService.decrementBook(id, bookName)
+            res.status(StatusCode.OK).send(cart)
 
         } catch (error:any) {
             next(error)
@@ -44,8 +45,8 @@ export class cartControl {
         try {
             const id = req.id!.toString()
             const { bookName } = req.body
-            const cart = await cartService.removeBook(id, bookName)
-            res.status(200).send(cart)
+            const cart = await CartService.removeBook(id, bookName)
+            res.status(StatusCode.OK).send(cart)
 
         } catch (error:any) {
             next(error)
@@ -56,8 +57,8 @@ export class cartControl {
     public static async emptyCart(req: Request, res: Response, next: NextFunction): Promise<void> {
         try {
             const id = req.id!.toString()
-            const cart = await cartService.emptyCart(id)
-            res.status(200).send(cart)
+            const cart = await CartService.emptyCart(id)
+            res.status(StatusCode.OK).send(cart)
 
         }catch (error:any) {
             next(error)
@@ -68,8 +69,8 @@ export class cartControl {
     public static async downloadFile(req: Request, res: Response, next: NextFunction): Promise<void> {
         try {
             const id = req.id!.toString()
-            const cart = await cartService.downloadFile(id)
-            res.status(200).send(cart)
+            const cart = await CartService.downloadFile(id)
+            res.status(StatusCode.OK).send(cart)
 
         } catch (error:any) {
             next(error)

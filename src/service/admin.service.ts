@@ -1,4 +1,4 @@
-import { appError } from "../error/errorHandler";
+import { AppError } from "../utils/customErrorHandler";
 import User from "../model/user.model";
 import { Role } from "../interfaces/user.interface"
 import Book from "../model/book.model";
@@ -6,15 +6,15 @@ import { Types } from "mongoose";
 import Category from "../model/category.model";
 import { BookInterface } from "../interfaces/book.interface";
 import { CategoryInterface } from "../interfaces/category.interface";
-
-export class adminService {
+import StatusConstants from "../constant/status.constant";
+export class AdminService {
   public static async approveAuthor(id: string): Promise<object> {
-    let user = await User.findByIdAndUpdate(id);
+    let user = await User.findById(id);
     if (!user) {
-      throw new appError("User not Found",404);
+      throw new AppError(StatusConstants.NOT_FOUND.body.message,StatusConstants.NOT_FOUND.httpStatusCode);
     }
     if (user.role !== Role.Author) {
-      throw new appError("User Not Register as Author",401);
+      throw new AppError(StatusConstants.UNAUTHORIZED.body.message,StatusConstants.UNAUTHORIZED.httpStatusCode);
     }
     return { data: user };
   }
@@ -22,10 +22,10 @@ export class adminService {
   public static async approveAdmin(id: string): Promise<object> {
     let user = await User.findByIdAndUpdate(id, { isApproved: true });
     if (!user) {
-      throw new appError("User not Found",404);
+      throw new AppError(StatusConstants.NOT_FOUND.body.message,StatusConstants.NOT_FOUND.httpStatusCode);
     }
     if (user.role !== Role.Admin) {
-      throw new appError("User Not Register as Admin",401);
+      throw new AppError(StatusConstants.UNAUTHORIZED.body.message,StatusConstants.UNAUTHORIZED.httpStatusCode);
     }
     return { data: user };
   }
@@ -34,17 +34,9 @@ export class adminService {
     const { title, author, categories, description, price } = data;
     const authid = await User.findOne({ username: author });
     if (!authid) {
-      throw new appError("Author Not Found",404);
+      throw new AppError(StatusConstants.NOT_FOUND.body.message,StatusConstants.NOT_FOUND.httpStatusCode);
     }
     const id: Types.ObjectId = authid!._id;
-    //const categoryIds: Types.ObjectId[] = [];
-    // for (const categoryName of categories) {
-    //     let category = await Category.findOne({ name: categoryName });
-    //     if (!category) {
-    //         category = await Category.create({ name: categoryName });
-    //     }
-    //     categoryIds.push(category._id);
-    // }
 
     const categoryPromises = categories.map(async (categoryName) => {
       let category = await Category.findOne({ name: categoryName });
@@ -75,38 +67,30 @@ export class adminService {
     let authid1: Types.ObjectId | undefined;
     let book = await Book.findOne({ title: id });
     if (!book) {
-      throw new appError("Book Not Found",404);
+      throw new AppError(StatusConstants.NOT_FOUND.body.message,StatusConstants.NOT_FOUND.httpStatusCode);
     }
     if (author !== undefined) {
       const authid = await User.findOne({ username: author });
       authid1 = authid!._id;
     }
-    // const categoryIds: Types.ObjectId[] | undefined | CategoryInterface[] = categories !== undefined ? [] : book.categories;
-    // if (categories !== undefined) {
-    //     for (const categoryName of categories) {
-    //         let category = await Category.findOne({ name: categoryName });
-    //         if (!category) {
-    //             category = await Category.create({ name: categoryName });
-    //         }
-    //         categoryIds.push(category._id);
-    //     }
-    // }
-
-    const categoryIds: Types.ObjectId[] | undefined | CategoryInterface[] =
+    let categoryIds: Types.ObjectId[] | undefined | CategoryInterface[] =
       categories !== undefined ? [] : book.categories;
 
-    if (categories !== undefined) {
-      const categoryPromises = categories.map(async (categoryName) => {
-        let category = await Category.findOne({ name: categoryName });
-        if (!category) {
-          category = await Category.create({ name: categoryName });
-        }
-        return category._id;
-      });
+    // if (categories !== undefined) {
+    //   const categoryPromises = categories.map(async (categoryName) => {
+    //     let category = await Category.findOne({ name: categoryName });
+    //     if (!category) {
+    //       category = await Category.create({ name: categoryName });
+    //     }
+    //     return category._id;
+    //   });
 
-      const resolvedCategoryIds = await Promise.all(categoryPromises);
-      categoryIds.push(...resolvedCategoryIds);
-    }
+    //   const resolvedCategoryIds = await Promise.all(categoryPromises);
+    //   categoryIds.push(...resolvedCategoryIds);
+    // }
+
+
+
 
     let update = await Book.findByIdAndUpdate(
       book._id,
@@ -122,7 +106,7 @@ export class adminService {
       .populate({ path: "author", select: ["username", "-_id"] })
       .populate({ path: "categories", select: ["name", "-_id"] });
     if (!update) {
-      throw new appError("Book Not Found",404);
+      throw new AppError(StatusConstants.NOT_FOUND.body.message,StatusConstants.NOT_FOUND.httpStatusCode);
     }
     return { message: "Update Success", data: update };
   }
@@ -134,7 +118,7 @@ export class adminService {
       .populate({ path: "author", select: ["username", "-_id"] })
       .populate({ path: "categories", select: ["name", "-_id"] });
     if (!book) {
-      throw new appError("Book Not Found",404);
+      throw new AppError(StatusConstants.NOT_FOUND.body.message,StatusConstants.NOT_FOUND.httpStatusCode);
     }
     return { message: "Delete Success", data: book };
   }
@@ -146,14 +130,14 @@ export class adminService {
     const totalCount = await User.countDocuments({ isApproved: false });
     const totalPages = Math.ceil(totalCount / pageSize);
     if (page < 1 || page > totalPages) {
-      throw new appError("Invalid page number",400);
+      throw new AppError(StatusConstants.BAD_REQUEST.body.message,StatusConstants.BAD_REQUEST.httpStatusCode);
     }
     const skip = (page - 1) * pageSize;
     const user = await User.find({ isApproved: false })
       .skip(skip)
       .limit(pageSize);
     if (!user) {
-      throw new appError("User not Found",404);
+      throw new AppError(StatusConstants.NOT_FOUND.body.message,StatusConstants.NOT_FOUND.httpStatusCode);
     }
     return {
       pendingRequests: user,

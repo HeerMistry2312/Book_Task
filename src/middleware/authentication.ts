@@ -1,16 +1,12 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
-import { Types } from "mongoose";
+import { TokenPayload } from '../interfaces/user.interface';
 import { SECRET_KEY } from "../config/config";
-import { appError, errorHandlerMiddleware} from "../error/errorHandler";
-declare module 'express' {
-    interface Request {
-        id?: Types.ObjectId;
-        role?: string;
-    }
-}
-
-export class authentication {
+import { AppError } from '../utils/customErrorHandler';
+import '../types/expressExtension'
+import { Role } from '../interfaces/user.interface';
+import StatusConstants from '../constant/status.constant';
+export class Authentication {
     public static async authUser(
         req: Request,
         res: Response,
@@ -19,16 +15,15 @@ export class authentication {
         try {
             let token = req.header("Authorization");
             if (!token) {
-                throw new appError('UnAuthorized',401);
+                throw new AppError(StatusConstants.UNAUTHORIZED.body.message,StatusConstants.UNAUTHORIZED.httpStatusCode);
             }
             token = token!.replace("Bearer ", "")
             if (!SECRET_KEY) {
-                throw new appError('SECRET_KEY is not defined',404);
+                throw new AppError(StatusConstants.NOT_FOUND.body.message,StatusConstants.NOT_FOUND.httpStatusCode);
             }
-            const decoded = jwt.verify(token, SECRET_KEY) as { id: Types.ObjectId, role: string }
+            const decoded = jwt.verify(token, SECRET_KEY) as TokenPayload
             req.id = decoded.id;
             req.role = decoded.role;
-            console.log(decoded)
             next();
         } catch (error:any) {
            next(error)
@@ -42,25 +37,13 @@ export class authentication {
         next: NextFunction
     ): Promise<void> {
         try {
-            let token = req.header("Authorization");
-            if (!token) {
-                throw new appError('UnAuthorized',401);
+            if (req.role !== Role.Admin) {
+                throw new AppError(StatusConstants.FORBIDDEN.body.message,StatusConstants.FORBIDDEN.httpStatusCode);
             }
-            token = token!.replace("Bearer ", "")
-            if (!SECRET_KEY) {
-                throw new appError('SECRET_KEY is not defined',404);
-            }
-            const decoded = jwt.verify(token, SECRET_KEY) as { id: Types.ObjectId, role: string }
-
-            if (!decoded.role || decoded.role !== 'admin') {
-                throw new appError('Forbbiden',403);
-            }
-            req.id = decoded.id;
-            req.role = decoded.role;
             next();
-        } catch (error:any) {
-            next(error)
-         }
+        } catch (error: any) {
+            next(error);
+        }
     }
 
 
@@ -70,25 +53,13 @@ export class authentication {
         next: NextFunction
     ): Promise<void> {
         try {
-            let token = req.header("Authorization");
-            if (!token) {
-                throw new appError('UnAuthorized',401);
+            if (req.role !== Role.Author) {
+                throw new AppError(StatusConstants.FORBIDDEN.body.message,StatusConstants.FORBIDDEN.httpStatusCode);
             }
-            token = token!.replace("Bearer ", "")
-            if (!SECRET_KEY) {
-                throw new appError('SECRET_KEY is not defined',404);
-            }
-            const decoded = jwt.verify(token, SECRET_KEY) as { id: Types.ObjectId, role: string }
-
-            if (!decoded.role || decoded.role !== 'author') {
-                throw new appError('Forbbiden',403);
-            }
-            req.id = decoded.id;
-            req.role = decoded.role;
             next();
-        } catch (error:any) {
-            next(error)
-         }
+        } catch (error: any) {
+            next(error);
+        }
     }
 
 }

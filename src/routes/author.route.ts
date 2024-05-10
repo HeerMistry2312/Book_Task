@@ -1,7 +1,7 @@
-import { authorControl } from '../controller/author.controller';
+import { AuthorControl } from '../controller/author.controller';
 import express from "express";
-import { authentication } from "../middleware/authentication";
-export class authorRoute {
+import { Authentication } from "../middleware/authentication";
+export class AuthorRoute {
     private router: express.Router;
 
     constructor() {
@@ -10,11 +10,11 @@ export class authorRoute {
     }
 
     private routes(): void {
-        this.router.post('/addBook', authentication.authAuthor, authorControl.createBook)
-        this.router.patch('/updateBook/:id', authentication.authAuthor, authorControl.updateBook)
-        this.router.delete('/deleteBook/:id', authentication.authAuthor, authorControl.deleteBook)
-        this.router.get('/myBooks', authentication.authAuthor, authorControl.showMyBooks)
-        this.router.get('/myBook/:name', authentication.authAuthor, authorControl.showBook)
+        this.router.post('/addBook', Authentication.authUser,Authentication.authAuthor, AuthorControl.createBook)
+        this.router.put('/updateBook/:id', Authentication.authUser,Authentication.authAuthor, AuthorControl.updateBook)
+        this.router.delete('/deleteBook/:id', Authentication.authUser,Authentication.authAuthor, AuthorControl.deleteBook)
+        this.router.get('/myBooks', Authentication.authUser,Authentication.authAuthor, AuthorControl.showMyBooks)
+        this.router.get('/myBook/:name', Authentication.authUser,Authentication.authAuthor, AuthorControl.showBook)
     }
 
     public getRoute(): express.Router {

@@ -1,21 +1,9 @@
 
 import { Request, Response, NextFunction } from 'express';
 
-export interface customError {
-    message: string;
-    statusCode: number;
-}
+import { AppError } from '../utils/customErrorHandler';
+import { CustomError } from '../interfaces/customError.interface';
 
-export class appError extends Error implements customError {
-    statusCode: number;
-
-    constructor(message: string, statusCode: number) {
-        super(message);
-        this.name = this.constructor.name;
-        this.statusCode = statusCode;
-        Error.captureStackTrace(this, this.constructor);
-    }
-}
 
 export const errorHandlerMiddleware = (
     error: Error,
@@ -23,12 +11,12 @@ export const errorHandlerMiddleware = (
     res: Response,
     next: NextFunction
 ) => {
-    let handledError: customError = {
+    let handledError: CustomError = {
         message: 'Internal Server Error',
         statusCode: 500
     };
 
-    if (error instanceof appError) {
+    if (error instanceof AppError) {
         handledError = {
             message: error.message,
             statusCode: error.statusCode
