@@ -16,7 +16,22 @@ export default class UserService {
         const hashedPassword = await bcrypt.hash(password, 10)
         const newUser = new User({ username, email, password: hashedPassword, role })
         await newUser.save();
-        return { message: "Sign Up Successfully", data: newUser };
+        const pipeline = [
+            {
+                $match: {_id : newUser._id}
+            },
+            {
+                $project:{
+                    username: 1,
+                    email: 1,
+                    Role: 1,
+                    isApproved: 1,
+                    token: 1
+                }
+            }
+        ]
+        const result = await User.aggregate(pipeline)
+        return { message: "Sign Up Successfully", data: result };
     }
 
 
@@ -41,7 +56,24 @@ export default class UserService {
         }
         const token = jwt.sign({ id: user._id, role: user.role }, SECRET_KEY, { expiresIn: "7h" });
         user.token = token;
-        return { message: "login Successfully", data: user };
+        await user.save();
+
+        const pipeline = [
+            {
+                $match: {_id : user._id}
+            },
+            {
+                $project:{
+                    username: 1,
+                    email: 1,
+                    Role: 1,
+                    isApproved: 1,
+                    token: 1
+                }
+            }
+        ]
+        const result = await User.aggregate(pipeline)
+        return { message: "login Successfully", data: result };
     }
 
 
@@ -55,6 +87,8 @@ export default class UserService {
         await user.save();
     }
 
+
+
     public static async editAccount(id: Types.ObjectId | undefined, name: string, email: string): Promise<object> {
         const user = await User.findById({ _id: id });
         if (!user) {
@@ -64,23 +98,132 @@ export default class UserService {
         if (!update) {
             throw new AppError(StatusConstants.NOT_FOUND.body.message,StatusConstants.NOT_FOUND.httpStatusCode);
         }
-        return { message: "User Updated", updatedData: update }
+        const pipeline = [
+            {
+                $match: {_id : update._id}
+            },
+            {
+                $project:{
+                    username: 1,
+                    email: 1,
+                    Role: 1,
+                    isApproved: 1
+                }
+            }
+        ]
+        const result = await User.aggregate(pipeline)
+        return { message: "User Updated", updatedData: result }
     }
+
+
+
+
 
     public static async deleteAccount(id: Types.ObjectId | undefined): Promise<object> {
         const user = await User.findById({ _id: id });
         if (!user) {
             throw new AppError(StatusConstants.UNAUTHORIZED.body.message,StatusConstants.UNAUTHORIZED.httpStatusCode);
         }
+
+        const userPipeline = [
+            {
+                $match: {_id : user._id}
+            },
+            {
+                $project:{
+                    username: 1,
+                    email: 1,
+                    Role: 1,
+                    isApproved: 1
+                }
+            }
+        ]
+        const userResult = await User.aggregate(userPipeline)
         const deleted = await User.findByIdAndDelete({ _id: id })
         if (!deleted) {
             throw new AppError(StatusConstants.NOT_FOUND.body.message,StatusConstants.NOT_FOUND.httpStatusCode);
         }
-        const deletedCart = await Cart.findOneAndDelete({ userId: id })
-        if (!deletedCart) {
+        const deleteCart = await Cart.findOne({ userId: id })
+        if (!deleteCart) {
             throw new AppError(StatusConstants.NOT_FOUND.body.message,StatusConstants.NOT_FOUND.httpStatusCode);
         }
-        return { message: "User Deleted", deletedUserData: deleted, deletedCartData: deletedCart }
+        const cartPipeline= [
+            {
+                $match: {_id: deleteCart._id}
+            },
+            {
+                $lookup: {
+                  from: "users",
+                  localField: "userId",
+                  foreignField: "_id",
+                  as: "user"
+                }
+              },
+              {
+                $unwind: "$user"
+              },
+              {
+                $unwind: "$books"
+              },
+              {
+                $lookup: {
+                  from: "books",
+                  localField: "books.book",
+                  foreignField: "_id",
+                  as: "bookDetails"
+                }
+              },
+              {
+                $unwind: "$bookDetails"
+              },
+              {
+                $lookup: {
+                  from: "users",
+                  localField: "bookDetails.author",
+                  foreignField: "_id",
+                  as: "author"
+                }
+              },
+              {
+                $unwind: "$author"
+              },
+               {
+                $lookup: {
+                  from: "categories",
+                  localField: "bookDetails.categories",
+                  foreignField: "_id",
+                  as: "categoryDetails"
+                }
+              },
+              {
+                $unwind: "$categoryDetails"
+              },
+
+              {
+                "$group": {
+                  "_id": "$_id",
+                  "totalAmount": { "$first": "$totalAmount" },
+                  "userName": { "$first": "$user.username" },
+                  "role": { "$first": "$user.role" },
+                  "email": { "$first": "$user.email" },
+                  "books": {
+                    "$push": {
+                      "book": "$bookDetails.title",
+                      "author":"$author.username",
+                      "category": "$categoryDetails.name",
+                      "quantity": "$books.quantity",
+                      "totalPrice": "$books.totalPrice"
+                    }
+                  }
+                }
+              }
+
+        ]
+
+        const cartResult = await Cart.aggregate(cartPipeline)
+        await Cart.findByIdAndDelete({_id:deleteCart._id})
+
+        return { message: "User Deleted", deletedUserData: userResult, deletedCartData: cartResult }
     }
 
 }

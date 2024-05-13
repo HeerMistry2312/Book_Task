@@ -38,25 +38,55 @@ export class AdminService {
     }
     const id: Types.ObjectId = authid!._id;
 
-    const categoryPromises = categories.map(async (categoryName) => {
-      let category = await Category.findOne({ name: categoryName });
-      if (!category) {
-        category = await Category.create({ name: categoryName });
-      }
-      return category._id;
-    });
-
-    const categoryIds = await Promise.all(categoryPromises);
+    const fetchid = await Category.find({name:{$in:[...categories]}})
+      const categoriesID = fetchid.map(i => i._id)
+      const newCategoriesIds = categoriesID
 
     let book = new Book({
       title,
       author: id,
-      categories: categoryIds,
+      categories: newCategoriesIds,
       description,
       price,
     });
     let newBook = await book.save();
-    return { message: "Book Created", data: newBook };
+    const bookPipeline= [
+      {
+          $match: {_id: newBook._id}
+      },
+        {
+          $lookup: {
+            from: "users",
+            localField: "author",
+            foreignField: "_id",
+            as: "author"
+          }
+        },
+
+         {
+          $lookup: {
+            from: "categories",
+            localField: "categories",
+            foreignField: "_id",
+            as: "categoryDetails"
+          }
+        },
+
+        {
+          $project:{
+              _id: 0,
+              title: 1,
+              author: "$author.username",
+              categories: "$categoryDetails.name",
+              description:1,
+              price:1
+
+          }
+        }
+
+  ]
+  const bookResult = await Book.aggregate(bookPipeline)
+    return { message: "Book Created", data: bookResult };
   }
 
   public static async updateBook(
@@ -73,75 +103,156 @@ export class AdminService {
       const authid = await User.findOne({ username: author });
       authid1 = authid!._id;
     }
-    let categoryIds: Types.ObjectId[] | undefined | CategoryInterface[] =
-      categories !== undefined ? [] : book.categories;
+    const updateData = { ...body };
 
-    // if (categories !== undefined) {
-    //   const categoryPromises = categories.map(async (categoryName) => {
-    //     let category = await Category.findOne({ name: categoryName });
-    //     if (!category) {
-    //       category = await Category.create({ name: categoryName });
-    //     }
-    //     return category._id;
-    //   });
+    if (body.categories) {
+      const fetchid = await Category.find({
+        name: { $in: [...updateData.categories] },
+      });
+      const categoriesID = fetchid.map((i) => i._id);
+      updateData.categories = categoriesID;
+    }
+    const bookPipeline = [
+      {
+        $match: { _id: book._id },
+      },
+      {
+        $lookup: {
+          from: "users",
+          localField: "author",
+          foreignField: "_id",
+          as: "author",
+        },
+      },
 
-    //   const resolvedCategoryIds = await Promise.all(categoryPromises);
-    //   categoryIds.push(...resolvedCategoryIds);
-    // }
+      {
+        $lookup: {
+          from: "categories",
+          localField: "categories",
+          foreignField: "_id",
+          as: "categoryDetails",
+        },
+      },
 
+      {
+        $project: {
+          _id: 0,
+          title: 1,
+          author: "$author.username",
+          categories: "$categoryDetails.name",
+          description: 1,
+          price: 1,
+        },
+      },
+    ];
 
-
-
-    let update = await Book.findByIdAndUpdate(
+    await Book.findByIdAndUpdate(
       book._id,
       {
-        title,
-        author: authid1 || undefined,
-        categories: categoryIds || undefined,
-        description,
-        price,
+        updateData,
       },
       { new: true }
-    )
-      .populate({ path: "author", select: ["username", "-_id"] })
-      .populate({ path: "categories", select: ["name", "-_id"] });
-    if (!update) {
-      throw new AppError(StatusConstants.NOT_FOUND.body.message,StatusConstants.NOT_FOUND.httpStatusCode);
-    }
-    return { message: "Update Success", data: update };
+    );
+    const bookResult = await Book.aggregate(bookPipeline);
+    return { message: "Book Updated", data: bookResult };
   }
 
   public static async deleteBook(id: string): Promise<object> {
-    const bookid = await Book.findOne({ title: id });
-    const id1: Types.ObjectId = bookid!._id;
-    const book = await Book.findByIdAndDelete({ _id: id1 })
-      .populate({ path: "author", select: ["username", "-_id"] })
-      .populate({ path: "categories", select: ["name", "-_id"] });
-    if (!book) {
-      throw new AppError(StatusConstants.NOT_FOUND.body.message,StatusConstants.NOT_FOUND.httpStatusCode);
+    const deletebook = await Book.findOne({ title: id });
+    if (!deletebook) {
+      throw new AppError(
+        StatusConstants.NOT_FOUND.body.message,
+        StatusConstants.NOT_FOUND.httpStatusCode
+      );
     }
-    return { message: "Delete Success", data: book };
+    const bookId: Types.ObjectId = deletebook._id;
+    const bookPipeline = [
+      {
+        $match: { _id: bookId },
+      },
+      {
+        $lookup: {
+          from: "users",
+          localField: "author",
+          foreignField: "_id",
+          as: "author",
+        },
+      },
+
+      {
+        $lookup: {
+          from: "categories",
+          localField: "categories",
+          foreignField: "_id",
+          as: "categoryDetails",
+        },
+      },
+
+      {
+        $project: {
+          _id: 0,
+          title: 1,
+          author: "$author.username",
+          categories: "$categoryDetails.name",
+          description: 1,
+          price: 1,
+        },
+      },
+    ];
+    const bookResult = await Book.aggregate(bookPipeline);
+     await Book.findByIdAndDelete({ _id: bookId })
+        return { message: "Delete Success", data: bookResult };
   }
+
+
+
 
   public static async listofPendingReq(
     page: number,
-    pageSize: number
+    pageSize: number,
+    searchQuery?: string,
+    sortBy?: string
   ): Promise<object> {
-    const totalCount = await User.countDocuments({ isApproved: false });
+
+    const pipeline: any[] = [];
+    pipeline.push({$match:{isApproved: false}},
+    {
+      $project:{
+        _id: 0,
+        username: 1,
+        email: 1,
+        role: 1,
+        isApproved: 1
+      }
+    }
+    )
+    if (searchQuery) {
+      pipeline.push({
+        $match: {
+          $or: [
+            { username: { $regex: searchQuery, $options: "i" } },
+            { email: { $regex: searchQuery, $options: "i" } },
+            { role: { $regex: searchQuery, $options: "i" } },
+          ],
+        },
+      });
+    }
+
+    if (sortBy) {
+      const sortField = sortBy.startsWith("-") ? sortBy.substring(1) : sortBy;
+      const sortOrder = sortBy.startsWith("-") ? -1 : 1;
+      const sortStage = { $sort: { [sortField]: sortOrder } };
+      pipeline.push(sortStage);
+    }
+
+    pipeline.push({ $skip: (page - 1) * pageSize }, { $limit: pageSize });
+
+    const user = await User.aggregate(pipeline);
+    const totalCount = await Book.countDocuments({isApproved: false});
     const totalPages = Math.ceil(totalCount / pageSize);
-    if (page < 1 || page > totalPages) {
-      throw new AppError(StatusConstants.BAD_REQUEST.body.message,StatusConstants.BAD_REQUEST.httpStatusCode);
-    }
-    const skip = (page - 1) * pageSize;
-    const user = await User.find({ isApproved: false })
-      .skip(skip)
-      .limit(pageSize);
-    if (!user) {
-      throw new AppError(StatusConstants.NOT_FOUND.body.message,StatusConstants.NOT_FOUND.httpStatusCode);
-    }
     return {
-      pendingRequests: user,
-      totalPendingReq: totalCount,
+     users: user,
+      totalUsers: totalCount,
       totalPages: totalPages,
       currentPage: page,
     };

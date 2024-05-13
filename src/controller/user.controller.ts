@@ -26,7 +26,6 @@ export class UserControl {
             const sessionUser = req.session as unknown as { user: any }
             if (user) {
                 sessionUser.user = user
-                console.log(sessionUser.user)
                 res.status(StatusCode.OK).send(user);
             } else {
                 throw new AppError('Incorrect Credentials',401);

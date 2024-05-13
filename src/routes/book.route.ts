@@ -12,8 +12,6 @@ export class BookRoute {
     private routes(): void {
         this.router.get('/', Authentication.authUser, BookControl.showAllBooks)
         this.router.get('/:name', Authentication.authUser, BookControl.showBook)
-        this.router.get('/author/:author', Authentication.authUser, BookControl.showByAuthor)
-        this.router.get('/category/:cat', Authentication.authUser, BookControl.showByCategory)
     }
 
     public getRoute(): express.Router {

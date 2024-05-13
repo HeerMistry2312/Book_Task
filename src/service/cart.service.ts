@@ -10,21 +10,95 @@ import { AppError } from "../utils/customErrorHandler";
 import StatusConstants from '../constant/status.constant';
 export class CartService {
     public static async goToCart(id: string): Promise<object> {
-        const cart = await Cart.findOne({ userId: id }).populate({
-            path: 'books.book',
-            populate: [{
-                path: 'author',
-                select: ['username','-_id']
-            }, {
-                path: 'categories',
-                select: ['name','-_id']
-            }]
-        }
-        )
+        const cart = await Cart.findOne({ userId: id })
+
         if (!cart) {
             throw new AppError(StatusConstants.NOT_FOUND.body.message,StatusConstants.NOT_FOUND.httpStatusCode);
         }
-        return cart
+        const cartPipeline= [
+            {
+                $match: {_id: cart._id}
+            },
+            {
+                $lookup: {
+                  from: "users",
+                  localField: "userId",
+                  foreignField: "_id",
+                  as: "user"
+                }
+              },
+              {
+                $unwind: "$user"
+              },
+              {
+                $unwind: "$books"
+              },
+              {
+                $lookup: {
+                  from: "books",
+                  localField: "books.book",
+                  foreignField: "_id",
+                  as: "bookDetails"
+                }
+              },
+              {
+                $unwind: "$bookDetails"
+              },
+              {
+                $lookup: {
+                  from: "users",
+                  localField: "bookDetails.author",
+                  foreignField: "_id",
+                  as: "author"
+                }
+              },
+              {
+                $unwind: "$author"
+              },
+               {
+                $lookup: {
+                  from: "categories",
+                  localField: "bookDetails.categories",
+                  foreignField: "_id",
+                  as: "categoryDetails"
+                }
+              },
+              {
+                $unwind: "$categoryDetails"
+              },
+
+              {
+                "$group": {
+                  "_id": "$_id",
+                  "userName": { "$first": "$user.username" },
+                  "role": { "$first": "$user.role" },
+                  "email": { "$first": "$user.email" },
+                  "books": {
+                    "$push": {
+                      "book": "$bookDetails.title",
+                      "author":"$author.username",
+                      "category": "$categoryDetails.name",
+                      "quantity": "$books.quantity",
+                      "totalPrice": "$books.totalPrice"
+                    }
+                  },
+                  "totalAmount": { "$first": "$totalAmount" },
+                }
+              },
+              {
+                $project:{
+                    _id: 0,
+                    userName: 1,
+                    role: 1,
+                    email: 1,
+                    books: 1,
+                    totalAmount: 1
+                }
+              }
+
+        ]
+        const cartResult = await Cart.aggregate(cartPipeline)
+        return cartResult
     }
 
 
@@ -37,17 +111,7 @@ export class CartService {
             book: new Types.ObjectId(book._id),
             quantity: quantity
         }
-        let cart = await Cart.findOne({ userId: id }).populate({
-            path: 'books.book',
-            populate: [{
-                path: 'author',
-                select: ['username','-_id']
-            }, {
-                path: 'categories',
-                select: ['name','-_id']
-            }]
-        }
-        )
+        let cart = await Cart.findOne({ userId: id })
         if (!cart) {
             cart = new Cart({ userId: id, books: [cartItem] })
 
@@ -60,7 +124,90 @@ export class CartService {
             }
         }
         cart = await cart.save()
-        return { message: "Book Added to Your Cart", data: cart }
+        const cartPipeline= [
+            {
+                $match: {_id: cart._id}
+            },
+            {
+                $lookup: {
+                  from: "users",
+                  localField: "userId",
+                  foreignField: "_id",
+                  as: "user"
+                }
+              },
+              {
+                $unwind: "$user"
+              },
+              {
+                $unwind: "$books"
+              },
+              {
+                $lookup: {
+                  from: "books",
+                  localField: "books.book",
+                  foreignField: "_id",
+                  as: "bookDetails"
+                }
+              },
+              {
+                $unwind: "$bookDetails"
+              },
+              {
+                $lookup: {
+                  from: "users",
+                  localField: "bookDetails.author",
+                  foreignField: "_id",
+                  as: "author"
+                }
+              },
+              {
+                $unwind: "$author"
+              },
+               {
+                $lookup: {
+                  from: "categories",
+                  localField: "bookDetails.categories",
+                  foreignField: "_id",
+                  as: "categoryDetails"
+                }
+              },
+              {
+                $unwind: "$categoryDetails"
+              },
+
+              {
+                "$group": {
+                  "_id": "$_id",
+                  "userName": { "$first": "$user.username" },
+                  "role": { "$first": "$user.role" },
+                  "email": { "$first": "$user.email" },
+                  "books": {
+                    "$push": {
+                      "book": "$bookDetails.title",
+                      "author":"$author.username",
+                      "category": "$categoryDetails.name",
+                      "quantity": "$books.quantity",
+                      "totalPrice": "$books.totalPrice"
+                    }
+                  },
+                  "totalAmount": { "$first": "$totalAmount" },
+                }
+              },
+              {
+                $project:{
+                    _id: 0,
+                    userName: 1,
+                    role: 1,
+                    email: 1,
+                    books: 1,
+                    totalAmount: 1
+                }
+              }
+
+        ]
+        const cartResult = await Cart.aggregate(cartPipeline)
+        return { message: "Book Added to Your Cart", data: cartResult }
     }
 
 
@@ -69,17 +216,7 @@ export class CartService {
         if (!book) {
             throw new AppError(StatusConstants.NOT_FOUND.body.message,StatusConstants.NOT_FOUND.httpStatusCode);
         }
-        let cart = await Cart.findOne({ userId: id }).populate({
-            path: 'books.book',
-            populate: [{
-                path: 'author',
-                select: 'username'
-            }, {
-                path: 'categories',
-                select: 'name'
-            }]
-        }
-        );
+        let cart = await Cart.findOne({ userId: id })
         if (!cart) {
             throw new AppError(StatusConstants.NOT_FOUND.body.message,StatusConstants.NOT_FOUND.httpStatusCode);
         }
@@ -92,7 +229,90 @@ export class CartService {
             cart.books.splice(index, 1);
         }
         cart = await cart.save();
-        return cart
+        const cartPipeline= [
+            {
+                $match: {_id: cart._id}
+            },
+            {
+                $lookup: {
+                  from: "users",
+                  localField: "userId",
+                  foreignField: "_id",
+                  as: "user"
+                }
+              },
+              {
+                $unwind: "$user"
+              },
+              {
+                $unwind: "$books"
+              },
+              {
+                $lookup: {
+                  from: "books",
+                  localField: "books.book",
+                  foreignField: "_id",
+                  as: "bookDetails"
+                }
+              },
+              {
+                $unwind: "$bookDetails"
+              },
+              {
+                $lookup: {
+                  from: "users",
+                  localField: "bookDetails.author",
+                  foreignField: "_id",
+                  as: "author"
+                }
+              },
+              {
+                $unwind: "$author"
+              },
+               {
+                $lookup: {
+                  from: "categories",
+                  localField: "bookDetails.categories",
+                  foreignField: "_id",
+                  as: "categoryDetails"
+                }
+              },
+              {
+                $unwind: "$categoryDetails"
+              },
+
+              {
+                "$group": {
+                  "_id": "$_id",
+                  "userName": { "$first": "$user.username" },
+                  "role": { "$first": "$user.role" },
+                  "email": { "$first": "$user.email" },
+                  "books": {
+                    "$push": {
+                      "book": "$bookDetails.title",
+                      "author":"$author.username",
+                      "category": "$categoryDetails.name",
+                      "quantity": "$books.quantity",
+                      "totalPrice": "$books.totalPrice"
+                    }
+                  },
+                  "totalAmount": { "$first": "$totalAmount" },
+                }
+              },
+              {
+                $project:{
+                    _id: 0,
+                    userName: 1,
+                    role: 1,
+                    email: 1,
+                    books: 1,
+                    totalAmount: 1
+                }
+              }
+
+        ]
+        const cartResult = await Cart.aggregate(cartPipeline)
+        return cartResult
     }
 
 
@@ -101,17 +321,7 @@ export class CartService {
         if (!book) {
             throw new AppError(StatusConstants.NOT_FOUND.body.message,StatusConstants.NOT_FOUND.httpStatusCode);
         }
-        let cart = await Cart.findOne({ userId: id }).populate({
-            path: 'books.book',
-            populate: [{
-                path: 'author',
-                select: 'username'
-            }, {
-                path: 'categories',
-                select: 'name'
-            }]
-        }
-        );
+        let cart = await Cart.findOne({ userId: id })
         if (!cart) {
             throw new AppError(StatusConstants.NOT_FOUND.body.message,StatusConstants.NOT_FOUND.httpStatusCode);
         }
@@ -121,29 +331,185 @@ export class CartService {
         }
         cart.books.splice(index, 1);
         cart = await cart.save();
-        return { message: "Book Removed from Your Cart", data: cart }
+        const cartPipeline= [
+            {
+                $match: {_id: cart._id}
+            },
+            {
+                $lookup: {
+                  from: "users",
+                  localField: "userId",
+                  foreignField: "_id",
+                  as: "user"
+                }
+              },
+              {
+                $unwind: "$user"
+              },
+              {
+                $unwind: "$books"
+              },
+              {
+                $lookup: {
+                  from: "books",
+                  localField: "books.book",
+                  foreignField: "_id",
+                  as: "bookDetails"
+                }
+              },
+              {
+                $unwind: "$bookDetails"
+              },
+              {
+                $lookup: {
+                  from: "users",
+                  localField: "bookDetails.author",
+                  foreignField: "_id",
+                  as: "author"
+                }
+              },
+              {
+                $unwind: "$author"
+              },
+               {
+                $lookup: {
+                  from: "categories",
+                  localField: "bookDetails.categories",
+                  foreignField: "_id",
+                  as: "categoryDetails"
+                }
+              },
+              {
+                $unwind: "$categoryDetails"
+              },
+
+              {
+                "$group": {
+                  "_id": "$_id",
+                  "userName": { "$first": "$user.username" },
+                  "role": { "$first": "$user.role" },
+                  "email": { "$first": "$user.email" },
+                  "books": {
+                    "$push": {
+                      "book": "$bookDetails.title",
+                      "author":"$author.username",
+                      "category": "$categoryDetails.name",
+                      "quantity": "$books.quantity",
+                      "totalPrice": "$books.totalPrice"
+                    }
+                  },
+                  "totalAmount": { "$first": "$totalAmount" },
+                }
+              },
+              {
+                $project:{
+                    _id: 0,
+                    userName: 1,
+                    role: 1,
+                    email: 1,
+                    books: 1,
+                    totalAmount: 1
+                }
+              }
+
+        ]
+        const cartResult = await Cart.aggregate(cartPipeline)
+        return { message: "Book Removed from Your Cart", data: cartResult }
 
     }
 
 
     public static async emptyCart(id: string): Promise<CartInterface | object> {
-        let cart = await Cart.findOne({ userId: id }).populate({
-            path: 'books.book',
-            populate: [{
-                path: 'author',
-                select: 'username'
-            }, {
-                path: 'categories',
-                select: 'name'
-            }]
-        }
-        );
+        let cart = await Cart.findOne({ userId: id })
         if (!cart) {
             throw new AppError(StatusConstants.NOT_FOUND.body.message,StatusConstants.NOT_FOUND.httpStatusCode);
         }
         cart.books = []
         cart = await cart.save()
-        return { message: "Cart is Empty Now", data: cart }
+        const cartPipeline= [
+            {
+                $match: {_id: cart._id}
+            },
+            {
+                $lookup: {
+                  from: "users",
+                  localField: "userId",
+                  foreignField: "_id",
+                  as: "user"
+                }
+              },
+              {
+                $unwind: "$user"
+              },
+              {
+                $unwind: "$books"
+              },
+              {
+                $lookup: {
+                  from: "books",
+                  localField: "books.book",
+                  foreignField: "_id",
+                  as: "bookDetails"
+                }
+              },
+              {
+                $unwind: "$bookDetails"
+              },
+              {
+                $lookup: {
+                  from: "users",
+                  localField: "bookDetails.author",
+                  foreignField: "_id",
+                  as: "author"
+                }
+              },
+              {
+                $unwind: "$author"
+              },
+               {
+                $lookup: {
+                  from: "categories",
+                  localField: "bookDetails.categories",
+                  foreignField: "_id",
+                  as: "categoryDetails"
+                }
+              },
+              {
+                $unwind: "$categoryDetails"
+              },
+
+              {
+                "$group": {
+                  "_id": "$_id",
+                  "userName": { "$first": "$user.username" },
+                  "role": { "$first": "$user.role" },
+                  "email": { "$first": "$user.email" },
+                  "books": {
+                    "$push": {
+                      "book": "$bookDetails.title",
+                      "author":"$author.username",
+                      "category": "$categoryDetails.name",
+                      "quantity": "$books.quantity",
+                      "totalPrice": "$books.totalPrice"
+                    }
+                  },
+                  "totalAmount": { "$first": "$totalAmount" },
+                }
+              },
+              {
+                $project:{
+                    _id: 0,
+                    userName: 1,
+                    role: 1,
+                    email: 1,
+                    books: 1,
+                    totalAmount: 1
+                }
+              }
+
+        ]
+        const cartResult = await Cart.aggregate(cartPipeline)
+        return { message: "Cart is Empty Now", data: cartResult }
     }
 
 

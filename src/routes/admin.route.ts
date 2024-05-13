@@ -21,8 +21,8 @@ export class AdminRoute {
 
         this.router.get('/category', Authentication.authUser,Authentication.authAdmin, CategoryControl.showCategories)
         this.router.post('/addcategory', Authentication.authUser,Authentication.authAdmin, CategoryControl.createCategory)
-        this.router.post('/editcategory/:category', Authentication.authUser,Authentication.authAdmin, CategoryControl.updateCategory)
-        this.router.post('/deletecategory/:category', Authentication.authUser,Authentication.authAdmin, CategoryControl.deleteCategory)
+        this.router.put('/editcategory/:category', Authentication.authUser,Authentication.authAdmin, CategoryControl.updateCategory)
+        this.router.delete('/deletecategory/:category', Authentication.authUser,Authentication.authAdmin, CategoryControl.deleteCategory)
     }
 
     public getRoute(): express.Router {

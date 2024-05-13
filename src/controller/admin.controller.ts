@@ -60,8 +60,8 @@ export class AdminControl {
 
     public static async listofPendingReq(req: Request, res: Response, next: NextFunction): Promise<void> {
         try {
-            const { page = 1, pageSize = 2 } = req.query;
-            const un = await AdminService.listofPendingReq(+page, +pageSize)
+            const { page = 1, pageSize = 2, searchQuery, sortBy } = req.query;
+            const un = await AdminService.listofPendingReq(+page, +pageSize, searchQuery as string, sortBy as string)
             res.status(StatusCode.OK).send(un)
         }  catch (error:any) {
             next(error)
