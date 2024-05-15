@@ -7,8 +7,7 @@ export class UserPipelineBuilder {
       username: 1,
       email: 1,
       role: 1,
-      isApproved: 1,
-      token: 1,
+      isApproved: 1
     });
     return builder.build();
   }
@@ -24,7 +23,6 @@ export class UserPipelineBuilder {
       .lookup("users", "bookDetails.author", "_id", "author")
       .unwind("$author")
       .lookup("categories", "bookDetails.categories", "_id", "categoryDetails")
-      .unwind("$categoryDetails")
       .group({
         _id: "$_id",
         totalAmount: { $first: "$totalAmount" },
@@ -35,11 +33,20 @@ export class UserPipelineBuilder {
           $push: {
             book: "$bookDetails.title",
             author: "$author.username",
-            category: "$categoryDetails.name",
+            category: "$categories.name",
             quantity: "$books.quantity",
             totalPrice: "$books.totalPrice",
           },
         },
+      })
+      .project({
+        _id:0,
+        userName: 1,
+        role: 1,
+        email: 1,
+        books:1,
+        totalAmount:1
+
       });
     return builder.build();
   }

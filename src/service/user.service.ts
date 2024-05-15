@@ -87,21 +87,16 @@ export default class UserService {
         if (!user) {
             throw new AppError(StatusConstants.UNAUTHORIZED.body.message,StatusConstants.UNAUTHORIZED.httpStatusCode);
         }
-        const userPipeline = await UserPipelineBuilder.userPipeline(user._id)
-        const deleteUser = await User.aggregate(userPipeline)
-
-        const deleted = await User.findByIdAndDelete({ _id: id })
-        if (!deleted) {
-            throw new AppError(StatusConstants.NOT_FOUND.body.message,StatusConstants.NOT_FOUND.httpStatusCode);
-        }
         const deleteCart = await Cart.findOne({ userId: id })
         if (!deleteCart) {
             throw new AppError(StatusConstants.NOT_FOUND.body.message,StatusConstants.NOT_FOUND.httpStatusCode);
         }
+        const userPipeline = await UserPipelineBuilder.userPipeline(user._id)
+        const deleteUser = await User.aggregate(userPipeline)
         const cartPipeline = await UserPipelineBuilder.deleteCartPipeline(deleteCart._id)
         const cartResult = await Cart.aggregate(cartPipeline)
         await Cart.findByIdAndDelete({_id:deleteCart._id})
-
+        await User.findByIdAndDelete({ _id: user._id })
         return { message: "User Deleted", deletedUserData: deleteUser, deletedCartData: cartResult }
     }
 
