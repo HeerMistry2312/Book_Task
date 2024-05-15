@@ -7,6 +7,8 @@ import Category from "../model/category.model";
 import { BookInterface } from "../interfaces/book.interface";
 import { CategoryInterface } from "../interfaces/category.interface";
 import StatusConstants from "../constant/status.constant";
+import { BookPipelineBuilder } from "../query/book.query";
+import { AdminPipelineBuilder } from "../query/admin.query";
 export class AdminService {
   public static async approveAuthor(id: string): Promise<object> {
     let user = await User.findById(id);
@@ -50,42 +52,10 @@ export class AdminService {
       price,
     });
     let newBook = await book.save();
-    const bookPipeline= [
-      {
-          $match: {_id: newBook._id}
-      },
-        {
-          $lookup: {
-            from: "users",
-            localField: "author",
-            foreignField: "_id",
-            as: "author"
-          }
-        },
-
-         {
-          $lookup: {
-            from: "categories",
-            localField: "categories",
-            foreignField: "_id",
-            as: "categoryDetails"
-          }
-        },
-
-        {
-          $project:{
-              _id: 0,
-              title: 1,
-              author: "$author.username",
-              categories: "$categoryDetails.name",
-              description:1,
-              price:1
-
-          }
-        }
-
-  ]
-  const bookResult = await Book.aggregate(bookPipeline)
+    const bookPipeline = await BookPipelineBuilder.getBookDetailsPipeline(
+      book._id
+    );
+    const bookResult = await Book.aggregate(bookPipeline);
     return { message: "Book Created", data: bookResult };
   }
 
@@ -93,69 +63,42 @@ export class AdminService {
     id: string,
     body: BookInterface
   ): Promise<object> {
-    const { title, author, categories, description, price } = body;
-    let authid1: Types.ObjectId | undefined;
     let book = await Book.findOne({ title: id });
     if (!book) {
-      throw new AppError(StatusConstants.NOT_FOUND.body.message,StatusConstants.NOT_FOUND.httpStatusCode);
+      throw new AppError(
+        StatusConstants.NOT_FOUND.body.message,
+        StatusConstants.NOT_FOUND.httpStatusCode
+      );
     }
-    if (author !== undefined) {
-      const authid = await User.findOne({ username: author });
-      authid1 = authid!._id;
-    }
-    const updateData = { ...body };
-
+    const data = { ...body };
+    let authid1: Types.ObjectId | undefined;
+    if (data.author !== undefined) {
+        const authid = await User.findOne({ username: data.author });
+        authid1 = authid!._id;
+      }
     if (body.categories) {
       const fetchid = await Category.find({
-        name: { $in: [...updateData.categories] },
+        name: { $in: [...data.categories] },
       });
       const categoriesID = fetchid.map((i) => i._id);
-      updateData.categories = categoriesID;
+      data.categories = categoriesID;
     }
-    const bookPipeline = [
-      {
-        $match: { _id: book._id },
-      },
-      {
-        $lookup: {
-          from: "users",
-          localField: "author",
-          foreignField: "_id",
-          as: "author",
-        },
-      },
-
-      {
-        $lookup: {
-          from: "categories",
-          localField: "categories",
-          foreignField: "_id",
-          as: "categoryDetails",
-        },
-      },
-
-      {
-        $project: {
-          _id: 0,
-          title: 1,
-          author: "$author.username",
-          categories: "$categoryDetails.name",
-          description: 1,
-          price: 1,
-        },
-      },
-    ];
-
-    await Book.findByIdAndUpdate(
+    const updateData = {...data}
+    book = await Book.findByIdAndUpdate(
       book._id,
       {
         updateData,
       },
       { new: true }
     );
+    const bookPipeline = await BookPipelineBuilder.getBookDetailsPipeline(
+      book!._id
+    );
     const bookResult = await Book.aggregate(bookPipeline);
     return { message: "Book Updated", data: bookResult };
   }
+
+
 
   public static async deleteBook(id: string): Promise<object> {
     const deletebook = await Book.findOne({ title: id });
@@ -165,42 +108,11 @@ export class AdminService {
         StatusConstants.NOT_FOUND.httpStatusCode
       );
     }
-    const bookId: Types.ObjectId = deletebook._id;
-    const bookPipeline = [
-      {
-        $match: { _id: bookId },
-      },
-      {
-        $lookup: {
-          from: "users",
-          localField: "author",
-          foreignField: "_id",
-          as: "author",
-        },
-      },
-
-      {
-        $lookup: {
-          from: "categories",
-          localField: "categories",
-          foreignField: "_id",
-          as: "categoryDetails",
-        },
-      },
-
-      {
-        $project: {
-          _id: 0,
-          title: 1,
-          author: "$author.username",
-          categories: "$categoryDetails.name",
-          description: 1,
-          price: 1,
-        },
-      },
-    ];
+    const bookPipeline = await BookPipelineBuilder.getBookDetailsPipeline(
+      deletebook._id
+    );
     const bookResult = await Book.aggregate(bookPipeline);
-     await Book.findByIdAndDelete({ _id: bookId })
+     await Book.findByIdAndDelete({ _id: deletebook._id })
         return { message: "Delete Success", data: bookResult };
   }
 
@@ -214,38 +126,7 @@ export class AdminService {
     sortBy?: string
   ): Promise<object> {
 
-    const pipeline: any[] = [];
-    pipeline.push({$match:{isApproved: false}},
-    {
-      $project:{
-        _id: 0,
-        username: 1,
-        email: 1,
-        role: 1,
-        isApproved: 1
-      }
-    }
-    )
-    if (searchQuery) {
-      pipeline.push({
-        $match: {
-          $or: [
-            { username: { $regex: searchQuery, $options: "i" } },
-            { email: { $regex: searchQuery, $options: "i" } },
-            { role: { $regex: searchQuery, $options: "i" } },
-          ],
-        },
-      });
-    }
-
-    if (sortBy) {
-      const sortField = sortBy.startsWith("-") ? sortBy.substring(1) : sortBy;
-      const sortOrder = sortBy.startsWith("-") ? -1 : 1;
-      const sortStage = { $sort: { [sortField]: sortOrder } };
-      pipeline.push(sortStage);
-    }
-
-    pipeline.push({ $skip: (page - 1) * pageSize }, { $limit: pageSize });
+    const pipeline = await AdminPipelineBuilder.pendinRequestPipeline(page,pageSize,searchQuery,sortBy)
 
     const user = await User.aggregate(pipeline);
     const totalCount = await Book.countDocuments({isApproved: false});

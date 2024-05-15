@@ -6,6 +6,7 @@ import Category from "../model/category.model";
 import { BookInterface } from "../interfaces/book.interface";
 import StatusConstants from "../constant/status.constant";
 import { Types } from "mongoose";
+import { BookPipelineBuilder } from "../query/book.query";
 export class AuthorService {
   public static async createBook(
     author: string,
@@ -33,37 +34,9 @@ export class AuthorService {
       price,
     });
     let newBook = await book.save();
-    const bookPipeline = [
-      {
-        $match: { _id: newBook._id },
-      },
-      {
-        $lookup: {
-          from: "users",
-          localField: "author",
-          foreignField: "_id",
-          as: "author",
-        },
-      },
-      {
-        $lookup: {
-          from: "categories",
-          localField: "categories",
-          foreignField: "_id",
-          as: "categoryDetails",
-        },
-      },
-      {
-        $project: {
-          _id: 0,
-          title: 1,
-          author: 1,
-          categories: 1,
-          description: 1,
-          price: 1,
-        },
-      },
-    ];
+    const bookPipeline = await BookPipelineBuilder.getBookDetailsPipeline(
+      newBook._id
+    );
     const bookResult = await Book.aggregate(bookPipeline);
 
     return { message: "Book Created", data: bookResult };
@@ -96,47 +69,15 @@ export class AuthorService {
       const categoriesID = fetchid.map((i) => i._id);
       updateData.categories = categoriesID;
     }
-
-    const bookPipeline = [
-      {
-        $match: { _id: book._id },
-      },
-      {
-        $lookup: {
-          from: "users",
-          localField: "author",
-          foreignField: "_id",
-          as: "author",
-        },
-      },
-
-      {
-        $lookup: {
-          from: "categories",
-          localField: "categories",
-          foreignField: "_id",
-          as: "categoryDetails",
-        },
-      },
-
-      {
-        $project: {
-          _id: 0,
-          title: 1,
-          author: "$author.username",
-          categories: "$categoryDetails.name",
-          description: 1,
-          price: 1,
-        },
-      },
-    ];
-
-    await Book.findByIdAndUpdate(
+    book = await Book.findByIdAndUpdate(
       book._id,
       {
         updateData,
       },
       { new: true }
+    );
+    const bookPipeline = await BookPipelineBuilder.getBookDetailsPipeline(
+      book!._id
     );
     const bookResult = await Book.aggregate(bookPipeline);
     return { message: "Book Updated", data: bookResult };
@@ -159,39 +100,9 @@ export class AuthorService {
         StatusConstants.BAD_REQUEST.httpStatusCode
       );
     }
-    const bookPipeline = [
-      {
-        $match: { _id: book._id },
-      },
-      {
-        $lookup: {
-          from: "users",
-          localField: "author",
-          foreignField: "_id",
-          as: "author",
-        },
-      },
-
-      {
-        $lookup: {
-          from: "categories",
-          localField: "categories",
-          foreignField: "_id",
-          as: "categoryDetails",
-        },
-      },
-
-      {
-        $project: {
-          _id: 0,
-          title: 1,
-          author: "$author.username",
-          categories: "$categoryDetails.name",
-          description: 1,
-          price: 1,
-        },
-      },
-    ];
+    const bookPipeline = await BookPipelineBuilder.getBookDetailsPipeline(
+      book._id
+    );
     const bookResult = await Book.aggregate(bookPipeline);
     book = await Book.findByIdAndDelete(book._id);
 
@@ -205,62 +116,15 @@ export class AuthorService {
     searchQuery?: string,
     sortBy?: string
   ): Promise<object> {
-    const bookPipeline: any[] = [];
-    bookPipeline.push(
-      {
-        $match: { author: author },
-      },
-      {
-        $lookup: {
-          from: "users",
-          localField: "author",
-          foreignField: "_id",
-          as: "author",
-        },
-      },
-
-      {
-        $lookup: {
-          from: "categories",
-          localField: "categories",
-          foreignField: "_id",
-          as: "categoryDetails",
-        },
-      },
-
-      {
-        $project: {
-          _id: 0,
-          title: 1,
-          author: "$author.username",
-          categories: "$categoryDetails.name",
-          description: 1,
-          price: 1,
-        },
-      }
+    const bookPipeline = await BookPipelineBuilder.getAllBooksPipeline(
+      page,
+      pageSize,
+      searchQuery,
+      sortBy,
+      author
     );
-    if (searchQuery) {
-      bookPipeline.push({
-        $match: {
-          $or: [
-            { title: { $regex: searchQuery, $options: "i" } },
-            { author: { $regex: searchQuery, $options: "i" } },
-            { category: { $regex: searchQuery, $options: "i" } },
-          ],
-        },
-      });
-    }
-
-    if (sortBy) {
-      const sortField = sortBy.startsWith("-") ? sortBy.substring(1) : sortBy;
-      const sortOrder = sortBy.startsWith("-") ? -1 : 1;
-      const sortStage = { $sort: { [sortField]: sortOrder } };
-      bookPipeline.push(sortStage);
-    }
-
-    bookPipeline.push({ $skip: (page - 1) * pageSize }, { $limit: pageSize });
     const books = await Book.aggregate(bookPipeline);
-    const totalCount = await Book.countDocuments({author: author});
+    const totalCount = await Book.countDocuments({ author: author });
     const totalPages = Math.ceil(totalCount / pageSize);
     return {
       books: books,
@@ -281,15 +145,18 @@ export class AuthorService {
         StatusConstants.NOT_FOUND.httpStatusCode
       );
     }
-    const book = await Book.find({ author: seekauthor._id, title: name })
-      .populate({ path: "author", select: ["username", "-_id"] })
-      .populate({ path: "categories", select: ["name", "-_id"] });
+    const book = await Book.findOne({ author: seekauthor._id, title: name })
     if (!book) {
       throw new AppError(
         StatusConstants.NOT_FOUND.body.message,
         StatusConstants.NOT_FOUND.httpStatusCode
       );
     }
-    return book;
+
+    const bookPipeline = await BookPipelineBuilder.getBookDetailsPipeline(
+      book._id
+    );
+    const bookResult = await Book.aggregate(bookPipeline);
+    return bookResult;
   }
 }

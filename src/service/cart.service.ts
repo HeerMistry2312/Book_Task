@@ -8,6 +8,7 @@ import PDFDocument from "pdfkit";
 import path from "path";
 import { AppError } from "../utils/customErrorHandler";
 import StatusConstants from '../constant/status.constant';
+import { CartPipelineBuilder } from '../query/cart.query';
 export class CartService {
     public static async goToCart(id: string): Promise<object> {
         const cart = await Cart.findOne({ userId: id })
@@ -15,91 +16,11 @@ export class CartService {
         if (!cart) {
             throw new AppError(StatusConstants.NOT_FOUND.body.message,StatusConstants.NOT_FOUND.httpStatusCode);
         }
-        const cartPipeline= [
-            {
-                $match: {_id: cart._id}
-            },
-            {
-                $lookup: {
-                  from: "users",
-                  localField: "userId",
-                  foreignField: "_id",
-                  as: "user"
-                }
-              },
-              {
-                $unwind: "$user"
-              },
-              {
-                $unwind: "$books"
-              },
-              {
-                $lookup: {
-                  from: "books",
-                  localField: "books.book",
-                  foreignField: "_id",
-                  as: "bookDetails"
-                }
-              },
-              {
-                $unwind: "$bookDetails"
-              },
-              {
-                $lookup: {
-                  from: "users",
-                  localField: "bookDetails.author",
-                  foreignField: "_id",
-                  as: "author"
-                }
-              },
-              {
-                $unwind: "$author"
-              },
-               {
-                $lookup: {
-                  from: "categories",
-                  localField: "bookDetails.categories",
-                  foreignField: "_id",
-                  as: "categoryDetails"
-                }
-              },
-              {
-                $unwind: "$categoryDetails"
-              },
-
-              {
-                "$group": {
-                  "_id": "$_id",
-                  "userName": { "$first": "$user.username" },
-                  "role": { "$first": "$user.role" },
-                  "email": { "$first": "$user.email" },
-                  "books": {
-                    "$push": {
-                      "book": "$bookDetails.title",
-                      "author":"$author.username",
-                      "category": "$categoryDetails.name",
-                      "quantity": "$books.quantity",
-                      "totalPrice": "$books.totalPrice"
-                    }
-                  },
-                  "totalAmount": { "$first": "$totalAmount" },
-                }
-              },
-              {
-                $project:{
-                    _id: 0,
-                    userName: 1,
-                    role: 1,
-                    email: 1,
-                    books: 1,
-                    totalAmount: 1
-                }
-              }
-
-        ]
+        const cartPipeline = await CartPipelineBuilder.cartPipeline(cart._id)
         const cartResult = await Cart.aggregate(cartPipeline)
         return cartResult
     }
+
 
 
     public static async addToCart(id: string, bookName: string, quantity: number): Promise<object> {
@@ -124,91 +45,12 @@ export class CartService {
             }
         }
         cart = await cart.save()
-        const cartPipeline= [
-            {
-                $match: {_id: cart._id}
-            },
-            {
-                $lookup: {
-                  from: "users",
-                  localField: "userId",
-                  foreignField: "_id",
-                  as: "user"
-                }
-              },
-              {
-                $unwind: "$user"
-              },
-              {
-                $unwind: "$books"
-              },
-              {
-                $lookup: {
-                  from: "books",
-                  localField: "books.book",
-                  foreignField: "_id",
-                  as: "bookDetails"
-                }
-              },
-              {
-                $unwind: "$bookDetails"
-              },
-              {
-                $lookup: {
-                  from: "users",
-                  localField: "bookDetails.author",
-                  foreignField: "_id",
-                  as: "author"
-                }
-              },
-              {
-                $unwind: "$author"
-              },
-               {
-                $lookup: {
-                  from: "categories",
-                  localField: "bookDetails.categories",
-                  foreignField: "_id",
-                  as: "categoryDetails"
-                }
-              },
-              {
-                $unwind: "$categoryDetails"
-              },
-
-              {
-                "$group": {
-                  "_id": "$_id",
-                  "userName": { "$first": "$user.username" },
-                  "role": { "$first": "$user.role" },
-                  "email": { "$first": "$user.email" },
-                  "books": {
-                    "$push": {
-                      "book": "$bookDetails.title",
-                      "author":"$author.username",
-                      "category": "$categoryDetails.name",
-                      "quantity": "$books.quantity",
-                      "totalPrice": "$books.totalPrice"
-                    }
-                  },
-                  "totalAmount": { "$first": "$totalAmount" },
-                }
-              },
-              {
-                $project:{
-                    _id: 0,
-                    userName: 1,
-                    role: 1,
-                    email: 1,
-                    books: 1,
-                    totalAmount: 1
-                }
-              }
-
-        ]
+        const cartPipeline = await CartPipelineBuilder.cartPipeline(cart._id)
         const cartResult = await Cart.aggregate(cartPipeline)
         return { message: "Book Added to Your Cart", data: cartResult }
     }
+
+
 
 
     public static async decrementBook(id: string, bookName: string): Promise<CartInterface | object> {
@@ -229,91 +71,12 @@ export class CartService {
             cart.books.splice(index, 1);
         }
         cart = await cart.save();
-        const cartPipeline= [
-            {
-                $match: {_id: cart._id}
-            },
-            {
-                $lookup: {
-                  from: "users",
-                  localField: "userId",
-                  foreignField: "_id",
-                  as: "user"
-                }
-              },
-              {
-                $unwind: "$user"
-              },
-              {
-                $unwind: "$books"
-              },
-              {
-                $lookup: {
-                  from: "books",
-                  localField: "books.book",
-                  foreignField: "_id",
-                  as: "bookDetails"
-                }
-              },
-              {
-                $unwind: "$bookDetails"
-              },
-              {
-                $lookup: {
-                  from: "users",
-                  localField: "bookDetails.author",
-                  foreignField: "_id",
-                  as: "author"
-                }
-              },
-              {
-                $unwind: "$author"
-              },
-               {
-                $lookup: {
-                  from: "categories",
-                  localField: "bookDetails.categories",
-                  foreignField: "_id",
-                  as: "categoryDetails"
-                }
-              },
-              {
-                $unwind: "$categoryDetails"
-              },
-
-              {
-                "$group": {
-                  "_id": "$_id",
-                  "userName": { "$first": "$user.username" },
-                  "role": { "$first": "$user.role" },
-                  "email": { "$first": "$user.email" },
-                  "books": {
-                    "$push": {
-                      "book": "$bookDetails.title",
-                      "author":"$author.username",
-                      "category": "$categoryDetails.name",
-                      "quantity": "$books.quantity",
-                      "totalPrice": "$books.totalPrice"
-                    }
-                  },
-                  "totalAmount": { "$first": "$totalAmount" },
-                }
-              },
-              {
-                $project:{
-                    _id: 0,
-                    userName: 1,
-                    role: 1,
-                    email: 1,
-                    books: 1,
-                    totalAmount: 1
-                }
-              }
-
-        ]
+        const cartPipeline = await CartPipelineBuilder.cartPipeline(cart._id)
         const cartResult = await Cart.aggregate(cartPipeline)
         return cartResult
     }
+
+
 
 
     public static async removeBook(id: string, bookName: string): Promise<CartInterface | object> {
@@ -331,92 +94,13 @@ export class CartService {
         }
         cart.books.splice(index, 1);
         cart = await cart.save();
-        const cartPipeline= [
-            {
-                $match: {_id: cart._id}
-            },
-            {
-                $lookup: {
-                  from: "users",
-                  localField: "userId",
-                  foreignField: "_id",
-                  as: "user"
-                }
-              },
-              {
-                $unwind: "$user"
-              },
-              {
-                $unwind: "$books"
-              },
-              {
-                $lookup: {
-                  from: "books",
-                  localField: "books.book",
-                  foreignField: "_id",
-                  as: "bookDetails"
-                }
-              },
-              {
-                $unwind: "$bookDetails"
-              },
-              {
-                $lookup: {
-                  from: "users",
-                  localField: "bookDetails.author",
-                  foreignField: "_id",
-                  as: "author"
-                }
-              },
-              {
-                $unwind: "$author"
-              },
-               {
-                $lookup: {
-                  from: "categories",
-                  localField: "bookDetails.categories",
-                  foreignField: "_id",
-                  as: "categoryDetails"
-                }
-              },
-              {
-                $unwind: "$categoryDetails"
-              },
-
-              {
-                "$group": {
-                  "_id": "$_id",
-                  "userName": { "$first": "$user.username" },
-                  "role": { "$first": "$user.role" },
-                  "email": { "$first": "$user.email" },
-                  "books": {
-                    "$push": {
-                      "book": "$bookDetails.title",
-                      "author":"$author.username",
-                      "category": "$categoryDetails.name",
-                      "quantity": "$books.quantity",
-                      "totalPrice": "$books.totalPrice"
-                    }
-                  },
-                  "totalAmount": { "$first": "$totalAmount" },
-                }
-              },
-              {
-                $project:{
-                    _id: 0,
-                    userName: 1,
-                    role: 1,
-                    email: 1,
-                    books: 1,
-                    totalAmount: 1
-                }
-              }
-
-        ]
+        const cartPipeline = await CartPipelineBuilder.cartPipeline(cart._id)
         const cartResult = await Cart.aggregate(cartPipeline)
         return { message: "Book Removed from Your Cart", data: cartResult }
 
     }
+
+
 
 
     public static async emptyCart(id: string): Promise<CartInterface | object> {
@@ -426,91 +110,12 @@ export class CartService {
         }
         cart.books = []
         cart = await cart.save()
-        const cartPipeline= [
-            {
-                $match: {_id: cart._id}
-            },
-            {
-                $lookup: {
-                  from: "users",
-                  localField: "userId",
-                  foreignField: "_id",
-                  as: "user"
-                }
-              },
-              {
-                $unwind: "$user"
-              },
-              {
-                $unwind: "$books"
-              },
-              {
-                $lookup: {
-                  from: "books",
-                  localField: "books.book",
-                  foreignField: "_id",
-                  as: "bookDetails"
-                }
-              },
-              {
-                $unwind: "$bookDetails"
-              },
-              {
-                $lookup: {
-                  from: "users",
-                  localField: "bookDetails.author",
-                  foreignField: "_id",
-                  as: "author"
-                }
-              },
-              {
-                $unwind: "$author"
-              },
-               {
-                $lookup: {
-                  from: "categories",
-                  localField: "bookDetails.categories",
-                  foreignField: "_id",
-                  as: "categoryDetails"
-                }
-              },
-              {
-                $unwind: "$categoryDetails"
-              },
-
-              {
-                "$group": {
-                  "_id": "$_id",
-                  "userName": { "$first": "$user.username" },
-                  "role": { "$first": "$user.role" },
-                  "email": { "$first": "$user.email" },
-                  "books": {
-                    "$push": {
-                      "book": "$bookDetails.title",
-                      "author":"$author.username",
-                      "category": "$categoryDetails.name",
-                      "quantity": "$books.quantity",
-                      "totalPrice": "$books.totalPrice"
-                    }
-                  },
-                  "totalAmount": { "$first": "$totalAmount" },
-                }
-              },
-              {
-                $project:{
-                    _id: 0,
-                    userName: 1,
-                    role: 1,
-                    email: 1,
-                    books: 1,
-                    totalAmount: 1
-                }
-              }
-
-        ]
+        const cartPipeline = await CartPipelineBuilder.cartPipeline(cart._id)
         const cartResult = await Cart.aggregate(cartPipeline)
         return { message: "Cart is Empty Now", data: cartResult }
     }
+
+
 
 
     public static async downloadFile(id: string): Promise<string> {
