@@ -2,12 +2,14 @@ import { Request, Response, NextFunction } from "express";
 import { AuthorService } from "../service/author.service";
 import { BookInterface } from "../interfaces/book.interface";
 import StatusCode from "../enum/statusCode";
+import bookValidation from "../validation/book.validation";
 export class AuthorControl {
     public static async createBook(req: Request, res: Response, next: NextFunction): Promise<void> {
         try {
             const author = req.id!.toString()
-            const data: BookInterface = req.body;
-            const book = await AuthorService.createBook(author, data)
+            const validatedData = await bookValidation.validateAuthorBook(req.body);
+            const {title, categories, description, price } = validatedData
+            const book = await AuthorService.createBook(author, title, categories, description, price)
             res.status(StatusCode.OK).send(book)
         }  catch (error:any) {
             next(error)
@@ -20,8 +22,9 @@ export class AuthorControl {
         try {
             const author = req.id!.toString()
             const id = req.params.id;
-            const body: BookInterface = req.body;
-            const updated = await AuthorService.updateBook(author, id, body)
+            const validatedData = await bookValidation.validateUpdateAuthorBook(req.body);
+            const {title, categories, description, price } = validatedData
+            const updated = await AuthorService.updateBook(author, id, title, categories, description, price)
             res.status(StatusCode.OK).send(updated)
 
         }  catch (error:any) {

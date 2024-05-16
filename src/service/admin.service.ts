@@ -4,8 +4,6 @@ import { Role } from "../interfaces/user.interface"
 import Book from "../model/book.model";
 import { Types } from "mongoose";
 import Category from "../model/category.model";
-import { BookInterface } from "../interfaces/book.interface";
-import { CategoryInterface } from "../interfaces/category.interface";
 import StatusConstants from "../constant/status.constant";
 import { BookPipelineBuilder } from "../query/book.query";
 import { AdminPipelineBuilder } from "../query/admin.query";
@@ -32,8 +30,7 @@ export class AdminService {
     return { data: user };
   }
 
-  public static async createBook(data: BookInterface): Promise<object> {
-    const { title, author, categories, description, price } = data;
+  public static async createBook(title:string, author:string, categories:string[], description:string, price:number ): Promise<object> {
     const authid = await User.findOne({ username: author });
     if (!authid) {
       throw new AppError(StatusConstants.NOT_FOUND.body.message,StatusConstants.NOT_FOUND.httpStatusCode);
@@ -61,7 +58,7 @@ export class AdminService {
 
   public static async updateBook(
     id: string,
-    body: BookInterface
+    title?: string|undefined, author?:string|undefined, categories?: (string|undefined)[], description?: string|undefined, price?: number|undefined
   ): Promise<object> {
     let book = await Book.findOne({ title: id });
     if (!book) {
@@ -70,29 +67,30 @@ export class AdminService {
         StatusConstants.NOT_FOUND.httpStatusCode
       );
     }
-    const data = { ...body };
-    let authid1: Types.ObjectId | undefined;
-    if (data.author !== undefined) {
-        const authid = await User.findOne({ username: data.author });
-        authid1 = authid!._id;
+    if (author !== undefined) {
+      const authid = await User.findOne({ username: author });
+      if (!authid) {
+          throw new AppError(
+              'Author not found',
+              StatusConstants.NOT_FOUND.httpStatusCode
+          );
       }
-    if (body.categories) {
-      const fetchid = await Category.find({
-        name: { $in: [...data.categories] },
+      book.author = authid._id;
+  }
+    if (categories) {
+      const fetchCategories = await Category.find({
+          name: { $in: categories.filter(c => !!c) }
       });
-      const categoriesID = fetchid.map((i) => i._id);
-      data.categories = categoriesID;
-    }
-    const updateData = {...data}
-    book = await Book.findByIdAndUpdate(
-      book._id,
-      {
-        updateData,
-      },
-      { new: true }
-    );
+      const categoryIds = fetchCategories.map(c => c._id);
+      book.categories = categoryIds;
+  }
+
+    if (title) book.title = title;
+    if (description) book.description = description;
+    if (price) book.price = price;
+    await book.save();
     const bookPipeline = await BookPipelineBuilder.getBookDetailsPipeline(
-      book!._id
+      book._id
     );
     const bookResult = await Book.aggregate(bookPipeline);
     return { message: "Book Updated", data: bookResult };

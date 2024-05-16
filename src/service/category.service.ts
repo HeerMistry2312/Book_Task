@@ -47,7 +47,7 @@ export class CategoryService {
 
 
 
-    public static async deleteCategory(category: string,categoryName:string): Promise<object> {
+    public static async deleteCategory(categoryName:string): Promise<object> {
         let findcategory = await Category.findOne({name: categoryName})
         if (!findcategory) {
             throw new AppError(StatusConstants.NOT_FOUND.body.message,StatusConstants.NOT_FOUND.httpStatusCode);
@@ -57,7 +57,7 @@ export class CategoryService {
         const allCategories = await CategoryPipelineBuilder.categoryPipeline(categoryId)
         const result = await Category.aggregate(allCategories)
 
-    await Category.findByIdAndDelete(categoryId,{name: category})
+    await Category.findByIdAndDelete(categoryId)
         return { message: "Category Deleted", data: result }
     }
 

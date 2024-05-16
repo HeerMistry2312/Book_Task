@@ -10,9 +10,12 @@ import { BookPipelineBuilder } from "../query/book.query";
 export class AuthorService {
   public static async createBook(
     author: string,
-    data: BookInterface
+    title:string,
+    categories:string[],
+    description:string,
+    price:number
   ): Promise<object> {
-    const { title, categories, description, price } = data;
+
     const authid = await User.findById({ _id: author });
     if (!authid) {
       throw new AppError(
@@ -45,7 +48,7 @@ export class AuthorService {
   public static async updateBook(
     author: string,
     id: string,
-    body: BookInterface
+    title?: string|undefined, categories?: (string|undefined)[], description?: string|undefined, price?: number|undefined
   ): Promise<object | null> {
     let book = await Book.findOne({ title: id });
     if (!book) {
@@ -60,24 +63,19 @@ export class AuthorService {
         StatusConstants.BAD_REQUEST.httpStatusCode
       );
     }
-    const updateData = { ...body };
-
-    if (body.categories) {
-      const fetchid = await Category.find({
-        name: { $in: [...updateData.categories] },
+    if (categories) {
+      const fetchCategories = await Category.find({
+          name: { $in: categories.filter(c => !!c) }
       });
-      const categoriesID = fetchid.map((i) => i._id);
-      updateData.categories = categoriesID;
-    }
-    book = await Book.findByIdAndUpdate(
-      book._id,
-      {
-        updateData,
-      },
-      { new: true }
-    );
+      const categoryIds = fetchCategories.map(c => c._id);
+      book.categories = categoryIds;
+  }
+  if (title) book.title = title;
+  if (description) book.description = description;
+  if (price) book.price = price;
+  await book.save();
     const bookPipeline = await BookPipelineBuilder.getBookDetailsPipeline(
-      book!._id
+      book._id
     );
     const bookResult = await Book.aggregate(bookPipeline);
     return { message: "Book Updated", data: bookResult };

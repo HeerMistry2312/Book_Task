@@ -1,7 +1,7 @@
 import { Request, Response , NextFunction} from "express";
 import { AdminService } from "../service/admin.service";
-import { BookInterface } from "../interfaces/book.interface";
 import StatusCode from "../enum/statusCode";
+import bookValidation from "../validation/book.validation";
 export class AdminControl {
     public static async approveAuthor(req: Request, res: Response,next: NextFunction): Promise<void> {
         try {
@@ -27,8 +27,9 @@ export class AdminControl {
 
     public static async createBook(req: Request, res: Response, next: NextFunction): Promise<void> {
         try {
-            const Data: BookInterface = req.body;
-            let book = await AdminService.createBook(Data)
+            const validatedData = await bookValidation.validateBook(req.body);
+            const {title, author, categories, description, price } = validatedData
+            let book = await AdminService.createBook(title, author, categories, description, price )
             res.status(StatusCode.OK).send(book)
         }  catch (error:any) {
             next(error)
@@ -39,8 +40,9 @@ export class AdminControl {
     public static async updateBook(req: Request, res: Response, next: NextFunction): Promise<void> {
         try {
             const id = req.params.id;
-            const body: BookInterface = req.body;
-            let update = await AdminService.updateBook(id, body)
+            const validatedData = await bookValidation.validateUpdateBook(req.body);
+            const {title, author, categories, description, price } = validatedData
+            let update = await AdminService.updateBook(id, title, author, categories, description, price )
             res.status(StatusCode.OK).send(update)
         }  catch (error:any) {
             next(error)

@@ -1,5 +1,6 @@
 import mongoose, { Schema } from 'mongoose';
 import { Role, UserInterface } from '../interfaces/user.interface';
+
 const userSchema = new Schema<UserInterface>({
     username: { type: String, required: true },
     email: { type: String, required: true, unique: true },

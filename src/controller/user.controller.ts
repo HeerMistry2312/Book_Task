@@ -3,13 +3,14 @@ import UserService from '../service/user.service';
 import { Types } from "mongoose";
 import { AppError } from '../utils/customErrorHandler';
 import StatusCode from '../enum/statusCode';
+import UserValidation from '../validation/user.validation';
 export class UserControl {
 
 
     public static async signUp(req: Request, res: Response, next: NextFunction): Promise<void> {
         try {
-            const { username, password, email, role } = req.body;
-
+            const validatedData = await UserValidation.validateUser(req.body);
+            const { username, password, email, role} = validatedData
             let newUser = await UserService.signUp(username, password, email, role)
 
             res.status(StatusCode.OK).send(newUser)
@@ -21,7 +22,8 @@ export class UserControl {
 
     public static async login(req: Request, res: Response, next: NextFunction): Promise<void> {
         try {
-            const { username, password } = req.body;
+            const validatedData = await UserValidation.validateLogin(req.body);
+            const { username, password } = validatedData;
             let user = await UserService.login(username, password)
             const sessionUser = req.session as unknown as { user: any }
             if (user) {
@@ -54,8 +56,8 @@ export class UserControl {
     public static async editAccount(req: Request, res: Response, next: NextFunction): Promise<void> {
         try {
             const id: Types.ObjectId | undefined = req.id
-            const { username, email } = req.body;
-
+            const validatedData = await UserValidation.validateEditUser(req.body);
+            const { username, email } = validatedData;
             let newUser = await UserService.editAccount(id, username, email)
             res.status(StatusCode.OK).json(newUser);
         } catch (error:any) {

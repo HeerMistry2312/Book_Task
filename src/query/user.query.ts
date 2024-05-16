@@ -7,7 +7,8 @@ export class UserPipelineBuilder {
       username: 1,
       email: 1,
       role: 1,
-      isApproved: 1
+      isApproved: 1,
+      token: 1
     });
     return builder.build();
   }

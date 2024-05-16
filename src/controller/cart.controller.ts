@@ -1,6 +1,7 @@
 import { NextFunction, Request, Response } from "express";
 import { CartService } from "../service/cart.service";
 import StatusCode from "../enum/statusCode";
+import cartValidation from "../validation/cart.validation";
 export class CartControl {
     public static async goToCart(req: Request, res: Response, next: NextFunction): Promise<void> {
         try {
@@ -18,7 +19,8 @@ export class CartControl {
     public static async addToCart(req: Request, res: Response, next: NextFunction): Promise<void> {
         try {
             const id = req.id!.toString()
-            const { bookName, quantity } = req.body
+            const validatedData = await cartValidation.validateCart(req.body);
+            const { bookName, quantity } = validatedData;
             const cart = await CartService.addToCart(id, bookName, quantity)
             res.status(StatusCode.OK).send(cart)
 
@@ -31,7 +33,8 @@ export class CartControl {
     public static async decrementBook(req: Request, res: Response, next: NextFunction): Promise<void> {
         try {
             const id = req.id!.toString()
-            const { bookName } = req.body
+            const validatedData = await cartValidation.validateDecrementBook(req.body);
+            const { bookName } = validatedData;
             const cart = await CartService.decrementBook(id, bookName)
             res.status(StatusCode.OK).send(cart)
 
@@ -44,7 +47,8 @@ export class CartControl {
     public static async removeBook(req: Request, res: Response, next: NextFunction): Promise<void> {
         try {
             const id = req.id!.toString()
-            const { bookName } = req.body
+            const validatedData = await cartValidation.validateDecrementBook(req.body);
+            const { bookName } = validatedData;
             const cart = await CartService.removeBook(id, bookName)
             res.status(StatusCode.OK).send(cart)
 

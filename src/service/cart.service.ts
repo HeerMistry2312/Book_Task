@@ -9,6 +9,7 @@ import path from "path";
 import { AppError } from "../utils/customErrorHandler";
 import StatusConstants from '../constant/status.constant';
 import { CartPipelineBuilder } from '../query/cart.query';
+
 export class CartService {
     public static async goToCart(id: string): Promise<object> {
         const cart = await Cart.findOne({ userId: id })

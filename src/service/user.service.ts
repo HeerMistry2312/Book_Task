@@ -64,7 +64,7 @@ export default class UserService {
 
 
 
-    public static async editAccount(id: Types.ObjectId | undefined, name: string, email: string): Promise<object> {
+    public static async editAccount(id: Types.ObjectId | undefined, name: string|undefined, email: string|undefined): Promise<object> {
         const user = await User.findById({ _id: id });
         if (!user) {
             throw new AppError(StatusConstants.UNAUTHORIZED.body.message,StatusConstants.UNAUTHORIZED.httpStatusCode);
