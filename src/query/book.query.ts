@@ -1,5 +1,5 @@
 import { Types } from "mongoose";
-import { PipelineBuilder } from "../utils/pipelineBuilder";
+import { PipelineBuilder } from "../utils/imports";
 export class BookPipelineBuilder {
     static getBookDetailsPipeline(
         id: string

@@ -1,4 +1,4 @@
-import { PipelineBuilder } from "../utils/pipelineBuilder";
+import { PipelineBuilder } from "../utils/imports";
 
 export class UserPipelineBuilder {
   static userPipeline(id: string): any[] {

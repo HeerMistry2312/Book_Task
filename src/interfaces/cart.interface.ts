@@ -1,6 +1,5 @@
 import mongoose, { Document } from "mongoose";
-import { BookInterface } from "./book.interface";
-import { UserInterface } from "./user.interface";
+import { BookInterface, UserInterface } from "../interfaces/imports"
 export interface CartItemInterface {
     book: mongoose.Types.ObjectId | BookInterface;
     quantity: number;

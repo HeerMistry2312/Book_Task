@@ -1,6 +1,6 @@
-import { UserControl } from "../controller/user.controller";
+import { UserControl } from "../controller/imports";
 import express from "express";
-import { Authentication } from "../middleware/authentication";
+import { Authentication } from "../middleware/imports";
 export class UserRoute {
     private router: express.Router;
 

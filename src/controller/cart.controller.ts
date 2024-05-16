@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response } from "express";
-import { CartService } from "../service/cart.service";
-import StatusCode from "../enum/statusCode";
+import { CartService } from "../service/imports"
+import { StatusCode } from "../enum/imports"
 import cartValidation from "../validation/cart.validation";
 export class CartControl {
     public static async goToCart(req: Request, res: Response, next: NextFunction): Promise<void> {

@@ -1,14 +1,12 @@
-import Book from '../model/book.model';
-import User from '../model/user.model';
-import Cart from '../model/cart.model';
-import { CartInterface,CartItemInterface } from '../interfaces/cart.interface';
+import {Book,User,Cart} from '../model/imports';
+import { CartInterface,CartItemInterface } from '../interfaces/imports';
 import { Types } from 'mongoose';
 import fs from "fs";
 import PDFDocument from "pdfkit";
 import path from "path";
-import { AppError } from "../utils/customErrorHandler";
+import { AppError } from "../utils/imports";
 import StatusConstants from '../constant/status.constant';
-import { CartPipelineBuilder } from '../query/cart.query';
+import { CartPipelineBuilder } from '../query/imports';
 
 export class CartService {
     public static async goToCart(id: string): Promise<object> {

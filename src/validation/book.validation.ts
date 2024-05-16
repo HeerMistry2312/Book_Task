@@ -1,5 +1,5 @@
 import * as yup from 'yup';
-import { BookInterface } from '../interfaces/book.interface';
+import { BookInterface } from '../interfaces/imports';
 class BookValidation {
     private bookSchema = yup.object().shape({
         title: yup.string()

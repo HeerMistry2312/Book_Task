@@ -1,6 +1,6 @@
 import mongoose, { Document, Schema } from 'mongoose';
 import Book from './book.model';
-import { CartItemInterface, CartInterface } from '../interfaces/cart.interface';
+import { CartItemInterface, CartInterface } from '../interfaces/imports';
 
 const cartItemSchema: Schema<CartItemInterface> = new Schema({
     book: { type: Schema.Types.ObjectId, ref: 'Book', required: true },

@@ -1,6 +1,6 @@
-import { BookControl } from "../controller/book.controller";
+import { BookControl } from "../controller/imports";
 import express from "express";
-import { Authentication } from "../middleware/authentication";
+import { Authentication } from "../middleware/imports";
 export class BookRoute {
     private router: express.Router;
 

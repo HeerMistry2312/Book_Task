@@ -1,7 +1,8 @@
 import { Request, Response , NextFunction} from "express";
-import { AdminService } from "../service/admin.service";
-import StatusCode from "../enum/statusCode";
+import { AdminService } from "../service/imports"
+import { StatusCode } from "../enum/imports"
 import bookValidation from "../validation/book.validation";
+
 export class AdminControl {
     public static async approveAuthor(req: Request, res: Response,next: NextFunction): Promise<void> {
         try {

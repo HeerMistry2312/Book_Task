@@ -1,6 +1,5 @@
 import mongoose, { Document } from 'mongoose';
-import { UserInterface } from './user.interface';
-import { CategoryInterface } from './category.interface';
+import { CategoryInterface, UserInterface } from "../interfaces/imports"
 export interface BookInterface extends Document {
     title: string;
     author: mongoose.Types.ObjectId | UserInterface;

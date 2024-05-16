@@ -1,9 +1,5 @@
 import { Document, Types } from 'mongoose';
-export enum Role {
-    Admin = 'admin',
-    Author = 'author',
-    Customer = 'customer',
-}
+import { Role} from "../enum/imports"
 export interface UserInterface extends Document {
     username: string;
     email: string;
@@ -17,3 +13,5 @@ export interface TokenPayload {
     id: Types.ObjectId;
     role: string;
 }
+
+

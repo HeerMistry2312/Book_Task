@@ -1,7 +1,7 @@
 
 import { NextFunction, Request, Response } from "express";
-import { BookService } from "../service/book.service";
-import StatusCode from "../enum/statusCode";
+import { BookService } from "../service/imports"
+import { StatusCode } from "../enum/imports"
 export class BookControl {
     public static async showBook(req: Request, res: Response, next: NextFunction): Promise<void> {
         try {

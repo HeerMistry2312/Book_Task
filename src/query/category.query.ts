@@ -1,4 +1,4 @@
-import { PipelineBuilder } from "../utils/pipelineBuilder";
+import { PipelineBuilder } from "../utils/imports";
 
 export class CategoryPipelineBuilder{
     static allCategoryPipeline(page: number, pageSize: number,searchQuery?: string, sortBy?: string): any[]{

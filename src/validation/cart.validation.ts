@@ -1,5 +1,5 @@
 import * as yup from 'yup';
-import { CartInterface } from '../interfaces/cart.interface';
+import { CartInterface } from '../interfaces/imports';
 
 class CartValidation {
     private cartSchema = yup.object().shape({

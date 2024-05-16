@@ -1,13 +1,12 @@
-import { Role } from '../interfaces/user.interface';
-import User from '../model/user.model';
-import Cart from '../model/cart.model';
+import { Role } from '../enum/imports';
+import {User,Cart} from '../model/imports';
 import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
 import { Types } from "mongoose";
-import { AppError } from "../utils/customErrorHandler";
-import { SECRET_KEY } from "../config/config";
+import { AppError } from "../utils/imports";
+import { SECRET_KEY } from "../config/imports";
 import StatusConstants from '../constant/status.constant';
-import { UserPipelineBuilder } from '../query/user.query';
+import { UserPipelineBuilder } from '../query/imports';
 export default class UserService {
 
     public static async signUp(username: string, password: string, email: string, role: Role): Promise<object> {

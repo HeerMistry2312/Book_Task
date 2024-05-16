@@ -1,4 +1,4 @@
-import StatusCode from "../enum/statusCode";
+import { StatusCode } from "../enum/imports";
 
 const StatusConstants = {
     BAD_REQUEST:{

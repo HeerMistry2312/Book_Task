@@ -1,4 +1,4 @@
-import { CustomError } from "../interfaces/customError.interface";
+import { CustomError } from "../interfaces/imports";
 export class AppError extends Error implements CustomError {
     statusCode: number;
 

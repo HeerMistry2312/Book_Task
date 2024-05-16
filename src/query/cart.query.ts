@@ -1,4 +1,4 @@
-import { PipelineBuilder } from "../utils/pipelineBuilder";
+import { PipelineBuilder } from "../utils/imports";
 
 export class CartPipelineBuilder {
   static cartPipeline(id: string): any[] {

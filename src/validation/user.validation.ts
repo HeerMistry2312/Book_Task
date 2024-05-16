@@ -1,5 +1,6 @@
 import * as yup from 'yup';
-import { Role, UserInterface } from '../interfaces/user.interface';
+import { UserInterface } from '../interfaces/imports';
+import { Role } from '../enum/imports';
 class UserValidation {
   private userSchema = yup.object().shape({
     username: yup.string()

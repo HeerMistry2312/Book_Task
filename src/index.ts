@@ -1,14 +1,10 @@
 import express from "express";
-import Database from "./config/db";
+import {Database} from "./config/imports";
 import session from 'express-session';
-import { SECRET_KEY } from "../src/config/config";
-import { UserRoute } from "./routes/user.route";
-import { AdminRoute } from "./routes/admin.route";
-import { AuthorRoute } from "./routes/author.route";
-import { BookRoute } from "./routes/book.route";
-import { CartRoute } from "./routes/cart.route";
-import { errorHandlerMiddleware } from "./middleware/errorHandler";
-import { AppError } from "./utils/customErrorHandler";
+import { SECRET_KEY } from "../src/config/imports";
+import { UserRoute,AdminRoute, AuthorRoute,BookRoute,CartRoute } from "./routes/imports";
+import { errorHandlerMiddleware } from "./middleware/imports";
+import { AppError } from "./utils/imports";
 import StatusConstants from "./constant/status.constant";
 export class App {
     private app: express.Application;

@@ -1,8 +1,7 @@
 
 import { Request, Response, NextFunction } from 'express';
-
-import { AppError } from '../utils/customErrorHandler';
-import { CustomError } from '../interfaces/customError.interface';
+import { AppError } from '../utils/imports';
+import { CustomError } from '../interfaces/imports';
 
 
 export const errorHandlerMiddleware = (

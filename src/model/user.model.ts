@@ -1,5 +1,6 @@
 import mongoose, { Schema } from 'mongoose';
-import { Role, UserInterface } from '../interfaces/user.interface';
+import { UserInterface } from '../interfaces/imports';
+import { Role } from '../enum/imports';
 
 const userSchema = new Schema<UserInterface>({
     username: { type: String, required: true },

@@ -1,7 +1,7 @@
-import Category from '../model/category.model';
-import { AppError } from "../utils/customErrorHandler";
+import {Category} from '../model/imports';
+import { AppError } from "../utils/imports";
 import StatusConstants from '../constant/status.constant';
-import { CategoryPipelineBuilder } from '../query/category.query';
+import { CategoryPipelineBuilder } from '../query/imports';
 export class CategoryService {
     public static async allCategories(page: number, pageSize: number,searchQuery?: string, sortBy?: string): Promise<object> {
         if (page <= 0 || !Number.isInteger(page)) {

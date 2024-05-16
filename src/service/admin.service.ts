@@ -1,12 +1,10 @@
-import { AppError } from "../utils/customErrorHandler";
-import User from "../model/user.model";
-import { Role } from "../interfaces/user.interface"
-import Book from "../model/book.model";
+import { AppError } from "../utils/imports";
+import { Role } from "../enum/imports";
 import { Types } from "mongoose";
-import Category from "../model/category.model";
+import {Category, Book, User} from "../model/imports";
 import StatusConstants from "../constant/status.constant";
-import { BookPipelineBuilder } from "../query/book.query";
-import { AdminPipelineBuilder } from "../query/admin.query";
+import { BookPipelineBuilder , AdminPipelineBuilder} from "../query/imports";
+
 export class AdminService {
   public static async approveAuthor(id: string): Promise<object> {
     let user = await User.findById(id);

@@ -1,5 +1,5 @@
 import * as yup from 'yup';
-import { CategoryInterface } from '../interfaces/category.interface';
+import { CategoryInterface } from '../interfaces/imports';
 
 class CategoryValidation {
     private categorySchema = yup.object().shape({

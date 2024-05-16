@@ -1,10 +1,10 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
-import { TokenPayload } from '../interfaces/user.interface';
-import { SECRET_KEY } from "../config/config";
-import { AppError } from '../utils/customErrorHandler';
+import { TokenPayload } from '../interfaces/imports';
+import { SECRET_KEY } from "../config/imports";
+import { AppError } from '../utils/imports';
 import '../types/expressExtension'
-import { Role } from '../interfaces/user.interface';
+import { Role } from '../enum/imports';
 import StatusConstants from '../constant/status.constant';
 export class Authentication {
     public static async authUser(

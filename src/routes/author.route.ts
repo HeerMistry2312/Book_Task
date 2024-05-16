@@ -1,6 +1,6 @@
-import { AuthorControl } from '../controller/author.controller';
+import { AuthorControl } from '../controller/imports';
 import express from "express";
-import { Authentication } from "../middleware/authentication";
+import { Authentication } from "../middleware/imports";
 export class AuthorRoute {
     private router: express.Router;
 

@@ -1,7 +1,7 @@
 import StatusConstants from "../constant/status.constant";
-import Book from "../model/book.model";
-import { BookPipelineBuilder } from "../query/book.query";
-import { AppError } from "../utils/customErrorHandler";
+import {Book} from "../model/imports";
+import { BookPipelineBuilder } from "../query/imports";
+import { AppError } from "../utils/imports";
 export class BookService {
   public static async showBook(
     id: string,

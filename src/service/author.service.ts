@@ -1,12 +1,9 @@
-import User from "../model/user.model";
-import { Role } from "../interfaces/user.interface";
-import { AppError } from "../utils/customErrorHandler";
-import Book from "../model/book.model";
-import Category from "../model/category.model";
-import { BookInterface } from "../interfaces/book.interface";
+import {User, Book, Category} from "../model/imports";
+import { Role } from "../enum/imports";
+import { AppError } from "../utils/imports";
 import StatusConstants from "../constant/status.constant";
 import { Types } from "mongoose";
-import { BookPipelineBuilder } from "../query/book.query";
+import { BookPipelineBuilder } from "../query/imports";
 export class AuthorService {
   public static async createBook(
     author: string,

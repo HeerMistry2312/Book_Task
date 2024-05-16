@@ -1,6 +1,6 @@
 import mongoose, { Schema } from 'mongoose';
 
-import { CategoryInterface } from '../interfaces/category.interface';
+import { CategoryInterface } from '../interfaces/imports';
 
 const categorySchema = new Schema<CategoryInterface>({
     name: { type: String, required: true, unique: true },

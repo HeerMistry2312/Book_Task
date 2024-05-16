@@ -1,8 +1,8 @@
 import { Request, Response, NextFunction } from 'express';
-import UserService from '../service/user.service';
 import { Types } from "mongoose";
-import { AppError } from '../utils/customErrorHandler';
-import StatusCode from '../enum/statusCode';
+import { UserService } from "../service/imports"
+import { StatusCode } from "../enum/imports"
+import {AppError} from "../utils/imports"
 import UserValidation from '../validation/user.validation';
 export class UserControl {
 
