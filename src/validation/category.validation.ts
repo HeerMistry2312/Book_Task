@@ -12,4 +12,4 @@ class CategoryValidation {
         return this.categorySchema.validate(data, { abortEarly: false });
       }
 }
-export default new CategoryValidation();
+export default CategoryValidation;

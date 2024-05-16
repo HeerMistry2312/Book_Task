@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import { AuthorService } from "../service/imports"
 import { StatusCode } from "../enum/imports"
-import bookValidation from "../validation/book.validation";
+import {bookValidation} from "../validation/imports";
 export class AuthorControl {
     public static async createBook(req: Request, res: Response, next: NextFunction): Promise<void> {
         try {

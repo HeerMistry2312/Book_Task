@@ -1,7 +1,7 @@
 import { NextFunction, Request, Response } from "express";
 import { CategoryService } from "../service/imports"
 import { StatusCode } from "../enum/imports"
-import categoryValidation from "../validation/category.validation";
+import {categoryValidation} from "../validation/imports";
 export class CategoryControl {
     public static async showCategories(req: Request, res: Response,next:NextFunction): Promise<void> {
         try {

@@ -25,4 +25,4 @@ class CartValidation {
         return this.cartSchema.validate(data, { abortEarly: false });
       }
 }
-export default new CartValidation();
+export default CartValidation;

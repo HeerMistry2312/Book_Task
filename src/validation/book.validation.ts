@@ -102,4 +102,4 @@ class BookValidation {
     }
 }
 
-export default new BookValidation()
+export default BookValidation
