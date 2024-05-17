@@ -2,7 +2,8 @@ import {Book,User,Cart} from '../model/imports';
 import { CartInterface,CartItemInterface } from '../interfaces/imports';
 import { Types } from 'mongoose';
 import fs from "fs";
-import PDFDocument from "pdfkit";
+import handlebars from 'handlebars';
+import puppeteer from 'puppeteer';
 import path from "path";
 import { AppError } from "../utils/imports";
 import StatusConstants from '../constant/status.constant';
@@ -118,56 +119,59 @@ export class CartService {
 
 
     public static async downloadFile(id: string): Promise<string> {
-        const cart = await Cart.findOne({ userId: id });
-        if (!cart) {
-            throw new AppError(StatusConstants.NOT_FOUND.body.message,StatusConstants.NOT_FOUND.httpStatusCode);
-        }
-        const user = await User.findOne({ _id: id });
-        const doc = new PDFDocument();
-        const fileName = `${user?.username}_cart.pdf`;
+    const cart = await Cart.findOne({ userId: id }).populate('books.book');
+    if (!cart) {
+        throw new AppError(StatusConstants.NOT_FOUND.body.message, StatusConstants.NOT_FOUND.httpStatusCode);
+    }
+    const user = await User.findOne({ _id: id });
+    if (!user) {
+        throw new AppError(StatusConstants.NOT_FOUND.body.message, StatusConstants.NOT_FOUND.httpStatusCode);
+    }
 
-        const filePath = path.join("src", "PDF", fileName);
+    const templateHtml = fs.readFileSync(path.join('src','templates', 'template.html'), 'utf8');
+    const template = handlebars.compile(templateHtml);
 
-        doc.pipe(fs.createWriteStream(filePath));
-        doc.fontSize(20).text("Cart Details", { align: "center" });
-        doc.moveDown();
-        doc.fontSize(16).text(`User Name: ${user?.username}`);
-        doc.moveDown();
-        doc.fontSize(16).text(`Role: ${user?.role}`);
-        doc.moveDown();
-        doc.fontSize(16).text(`Email: ${user?.email}`);
-        doc.moveDown()
-        doc.fontSize(16).font("Helvetica-Bold").text("Books:", { underline: true });
-        doc.moveDown();
+    const books = cart.books.map((item: any) => ({
+        title: item.book.title,
+        quantity: item.quantity,
+        price: item.book.price,
+        totalPrice: item.totalPrice,
+    }));
 
+    const data = {
+        username: user.username,
+        role: user.role,
+        email: user.email,
+        books,
+        totalAmount: cart.totalAmount,
+    };
 
-        let Ycod = doc.y;
-        doc.font("Helvetica-Bold").text("Book Title", 70, Ycod);
-        doc.text("Quantity", 250, Ycod);
-        doc.text("Price", 350, Ycod);
-        doc.text("Total Price", 450, Ycod);
-        doc.moveDown();
-        let books = await Book.find({});
+    const html = template(data);
 
-        cart.books.forEach((item) => {
-            const book = books.find((b) => b._id.equals(item.book));
-            if (book) {
-                let Ycod = doc.y;
-                doc.font("Helvetica").text(book.title, 70, Ycod);
-                doc.text(item.quantity.toString(), 250, Ycod);
-                doc.text(book.price.toString(), 350, Ycod);
-                doc.text(item.totalPrice!.toString(), 450, Ycod);
-                doc.moveDown();
+    let browser;
+        try {
+            browser = await puppeteer.launch({
+                headless: true,
+                slowMo: 50,
+                args: ['--no-sandbox', '--disable-setuid-sandbox'],
+                timeout: 60000,
+            });
+            const page = await browser.newPage();
+            await page.setContent(html, { waitUntil: 'networkidle0', timeout: 60000 });
+
+            const fileName = `${user.username}_cart.pdf`;
+            const filePath = path.join('src', 'PDF', fileName);
+            await page.pdf({ path: filePath, format: 'A4' });
+
+            return filePath;
+        } catch (error) {
+            console.error("Puppeteer error:", error);
+            throw new AppError("Failed to generate PDF", StatusConstants.INTERNAL_SERVER_ERROR.httpStatusCode);
+        } finally {
+            if (browser) {
+                await browser.close();
             }
-        });
 
-        doc.moveDown();
-        doc
-            .font("Helvetica-Bold")
-            .text(`Total Amount: ${cart.totalAmount}`, 350, doc.y);
-
-        doc.end();
-
-        return filePath;
+        }
     }
 }

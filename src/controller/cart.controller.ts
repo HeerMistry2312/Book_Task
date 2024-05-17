@@ -74,7 +74,7 @@ export class CartControl {
         try {
             const id = req.id!.toString()
             const cart = await CartService.downloadFile(id)
-            res.status(StatusCode.OK).send(cart)
+            res.status(StatusCode.OK).download(cart)
 
         } catch (error:any) {
             next(error)
