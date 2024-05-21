@@ -1,13 +1,8 @@
-import { AdminPipelineBuilder } from "./admin.query";
-import { BookPipelineBuilder } from "./book.query";
-import { CartPipelineBuilder } from "./cart.query";
-import { CategoryPipelineBuilder } from "./category.query";
-import { UserPipelineBuilder } from "./user.query";
-
+import UserPipeline from "./user.query";
+import CategoryPipeline from "./category.query";
+import AdminPipeline from "./admin.query";
 export {
-    AdminPipelineBuilder,
-    BookPipelineBuilder,
-    CartPipelineBuilder,
-    CategoryPipelineBuilder,
-    UserPipelineBuilder
+    UserPipeline,
+    CategoryPipeline,
+    AdminPipeline
 }

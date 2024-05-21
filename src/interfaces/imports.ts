@@ -1,17 +1,13 @@
-import { BookInterface } from "./book.interface";
-import { CartInterface, CartItemInterface } from "./cart.interface";
-import { UserInterface,TokenPayload } from "./user.interface";
-import { CustomError } from "./customError.interface";
-import { CategoryInterface } from "./category.interface";
+import { UserAttributes, UserCreationAttributes, TokenPayload } from "./user.interface";
+import { CategoryAttributes, CategoryCreationAttributes } from "./category.interface";
+import { BookAttributes,BookCreationAttributes } from "./book.interface";
 
-
-
-export{
-    BookInterface,
-    CartInterface,
-    CartItemInterface,
-    UserInterface,
+export {
+    UserAttributes,
+    UserCreationAttributes,
     TokenPayload,
-    CustomError,
-    CategoryInterface
+    CategoryAttributes,
+    CategoryCreationAttributes,
+    BookAttributes,
+    BookCreationAttributes
 }

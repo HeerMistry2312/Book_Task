@@ -1,39 +1,49 @@
-import { PipelineBuilder } from "../utils/imports";
+import {Category} from "../model/imports";
+import { AppError } from "../utils/imports";
+import StatusConstants from '../constant/status.constant';
+import { Op } from "sequelize";
 
-export class CategoryPipelineBuilder{
-    static allCategoryPipeline(page: number, pageSize: number,searchQuery?: string, sortBy?: string): any[]{
-        const builder = new PipelineBuilder()
-            .match({})
-            .paginate(page, pageSize)
-            .project({
-                _id:0,
-                name: 1
-            })
+export default class CategoryPipeline{
+    public static async CategoryPipeline(page: number, pageSize: number,searchQuery?: string, sortBy?: string):Promise<object>{
+      try {
+        let queryOptions: any = {
+            offset: (page - 1) * pageSize,
+            limit: pageSize,
+            attributes: ['name'],
+        };
+        if (searchQuery) {
+            queryOptions.where = {
+                name: {
+                    [Op.iLike]: `%${searchQuery}%`,
+                },
+            };
+        }
+        if (sortBy) {
+            const orderDirection = sortBy.startsWith('-') ? 'DESC' : 'ASC';
+            const attributeName = sortBy.replace(/^-/, '');
+            queryOptions.order = [[attributeName, orderDirection]];
+        }
+        const categories = await Category.findAll(queryOptions);
 
-            if (searchQuery) {
-                builder.match({
-                    $or: [
-                        { name: { $regex: searchQuery, $options: "i" } },
-                    ],
-                });
-            }
-
-            if (sortBy) {
-                builder.sort(sortBy);
-            }
-
-            return builder.build();
+        return categories;
+      } catch (error:any) {
+        throw error
+      }
     }
 
 
-    static categoryPipeline(id: string): any[]{
-        const builder = new PipelineBuilder()
-            .match({_id: id})
-            .project({
-                _id:0,
-                name: 1
-            })
-            return builder.build();
-    }
+    public static async findCategoryPipeline(id:number):Promise<object>{
+        try {
+            const category = await Category.findByPk(id, {
+                attributes: ['name'],
+              });
 
-}
+              if (!category) {
+                throw new AppError(StatusConstants.NOT_FOUND.body.message,StatusConstants.NOT_FOUND.httpStatusCode);
+              }
+              return category
+        } catch (error) {
+            throw error
+        }
+    }
+  }

@@ -1,4 +1,4 @@
-import { SECRET_KEY, MONGODB_URI, PORT } from "./config";
-import Database from "./db";
+import { SECRET_KEY,DB_NAME, NAME, PASSWORD, HOST , PORT } from "./config";
+import sequelize from "./db";
 
-export {SECRET_KEY, MONGODB_URI, PORT, Database}
+export {SECRET_KEY, DB_NAME, NAME, PASSWORD, HOST, PORT, sequelize}

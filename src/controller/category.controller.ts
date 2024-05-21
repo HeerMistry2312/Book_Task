@@ -1,8 +1,8 @@
 import { NextFunction, Request, Response } from "express";
 import { CategoryService } from "../service/imports"
 import { StatusCode } from "../enum/imports"
-import {categoryValidation} from "../validation/imports";
-export class CategoryControl {
+
+export class CategoryControl{
     public static async showCategories(req: Request, res: Response,next:NextFunction): Promise<void> {
         try {
             const { page = 1, pageSize = 2, searchQuery, sortBy } = req.query;
@@ -16,8 +16,7 @@ export class CategoryControl {
 
     public static async createCategory(req: Request, res: Response,next:NextFunction): Promise<void> {
         try {
-            const validatedData = await categoryValidation.validateCategory(req.body);
-            const { name } = validatedData;
+            const { name } = req.body;
             const category = await CategoryService.createCategory(name)
             res.status(StatusCode.OK).send(category)
         } catch (error:any) {
@@ -29,9 +28,8 @@ export class CategoryControl {
     public static async updateCategory(req: Request, res: Response,next:NextFunction): Promise<void> {
         try {
             const categoryName = req.params.category
-            const validatedData = await categoryValidation.validateCategory(req.body);
-            const { name } = validatedData;
-            const category = await CategoryService.updateCategory(name,categoryName)
+            const { name } = req.body;
+            const category = await CategoryService.updateCategory(categoryName,name)
             res.status(StatusCode.OK).send(category)
         } catch (error:any) {
             next(error)

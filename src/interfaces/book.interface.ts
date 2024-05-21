@@ -1,10 +1,14 @@
-import mongoose, { Document } from 'mongoose';
-import { CategoryInterface, UserInterface } from "../interfaces/imports"
-export interface BookInterface extends Document {
-    title: string;
-    author: mongoose.Types.ObjectId | UserInterface;
-    categories: mongoose.Types.ObjectId[] | CategoryInterface[];
+import { Optional } from "sequelize";
+
+interface BookAttributes {
+    id: number;
+    Bookname: string;
+    author: number;
+    ISBN: number;
     description: string;
     price: number;
 
-}
+  }
+  interface BookCreationAttributes extends Optional<BookAttributes, 'id'> {}
+
+  export {BookAttributes, BookCreationAttributes}

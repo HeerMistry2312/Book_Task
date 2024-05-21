@@ -14,7 +14,7 @@ export class UserRoute {
         this.router.post('/login', UserControl.login)
         this.router.get('/logout', Authentication.authUser, UserControl.logout)
         this.router.put('/edit', Authentication.authUser, UserControl.editAccount)
-        this.router.delete('/delete', Authentication.authUser, UserControl.deleteAccount)
+        // this.router.delete('/delete', Authentication.authUser, UserControl.deleteAccount)
 
     }
 

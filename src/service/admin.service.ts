@@ -1,137 +1,90 @@
 import { AppError } from "../utils/imports";
 import { Role } from "../enum/imports";
-import { Types } from "mongoose";
-import {Category, Book, User} from "../model/imports";
+import {Category, User} from "../model/imports";
 import StatusConstants from "../constant/status.constant";
-import { BookPipelineBuilder , AdminPipelineBuilder} from "../query/imports";
+import { UserPipeline,AdminPipeline} from "../query/imports";
+import { Op } from "sequelize";
+
 
 export class AdminService {
-  public static async approveAuthor(id: string): Promise<object> {
-    let user = await User.findById(id);
-    if (!user) {
-      throw new AppError(StatusConstants.NOT_FOUND.body.message,StatusConstants.NOT_FOUND.httpStatusCode);
-    }
-    if (user.role !== Role.Author) {
-      throw new AppError(StatusConstants.UNAUTHORIZED.body.message,StatusConstants.UNAUTHORIZED.httpStatusCode);
-    }
-    return { data: user };
-  }
-
-  public static async approveAdmin(id: string): Promise<object> {
-    let user = await User.findByIdAndUpdate(id, { isApproved: true });
-    if (!user) {
-      throw new AppError(StatusConstants.NOT_FOUND.body.message,StatusConstants.NOT_FOUND.httpStatusCode);
-    }
-    if (user.role !== Role.Admin) {
-      throw new AppError(StatusConstants.UNAUTHORIZED.body.message,StatusConstants.UNAUTHORIZED.httpStatusCode);
-    }
-    return { data: user };
-  }
-
-  public static async createBook(title:string, author:string, categories:string[], description:string, price:number ): Promise<object> {
-    const authid = await User.findOne({ username: author });
-    if (!authid) {
-      throw new AppError(StatusConstants.NOT_FOUND.body.message,StatusConstants.NOT_FOUND.httpStatusCode);
-    }
-    const id: Types.ObjectId = authid!._id;
-
-    const fetchid = await Category.find({name:{$in:[...categories]}})
-      const categoriesID = fetchid.map(i => i._id)
-      const newCategoriesIds = categoriesID
-
-    let book = new Book({
-      title,
-      author: id,
-      categories: newCategoriesIds,
-      description,
-      price,
-    });
-    let newBook = await book.save();
-    const bookPipeline = await BookPipelineBuilder.getBookDetailsPipeline(
-      book._id
-    );
-    const bookResult = await Book.aggregate(bookPipeline);
-    return { message: "Book Created", data: bookResult };
-  }
-
-  public static async updateBook(
-    id: string,
-    title?: string|undefined, author?:string|undefined, categories?: (string|undefined)[], description?: string|undefined, price?: number|undefined
-  ): Promise<object> {
-    let book = await Book.findOne({ title: id });
-    if (!book) {
-      throw new AppError(
-        StatusConstants.NOT_FOUND.body.message,
-        StatusConstants.NOT_FOUND.httpStatusCode
-      );
-    }
-    if (author !== undefined) {
-      const authid = await User.findOne({ username: author });
-      if (!authid) {
-          throw new AppError(
-              'Author not found',
-              StatusConstants.NOT_FOUND.httpStatusCode
-          );
+    public static async approveAuthor(name: string): Promise<object> {
+        const user = await User.findOne({where:{username:name}});
+        if (!user) {
+          throw new AppError(StatusConstants.NOT_FOUND.body.message,StatusConstants.NOT_FOUND.httpStatusCode);
+        }
+        if (user.role !== Role.Author) {
+          throw new AppError(StatusConstants.UNAUTHORIZED.body.message,StatusConstants.UNAUTHORIZED.httpStatusCode);
+        }
+        const approveAuthor = await user.update({isApproved: true})
+        const result = await UserPipeline.userPipeline(approveAuthor.id)
+        return { data: result };
       }
-      book.author = authid._id;
-  }
-    if (categories) {
-      const fetchCategories = await Category.find({
-          name: { $in: categories.filter(c => !!c) }
-      });
-      const categoryIds = fetchCategories.map(c => c._id);
-      book.categories = categoryIds;
-  }
-
-    if (title) book.title = title;
-    if (description) book.description = description;
-    if (price) book.price = price;
-    await book.save();
-    const bookPipeline = await BookPipelineBuilder.getBookDetailsPipeline(
-      book._id
-    );
-    const bookResult = await Book.aggregate(bookPipeline);
-    return { message: "Book Updated", data: bookResult };
-  }
 
 
 
-  public static async deleteBook(id: string): Promise<object> {
-    const deletebook = await Book.findOne({ title: id });
-    if (!deletebook) {
-      throw new AppError(
-        StatusConstants.NOT_FOUND.body.message,
-        StatusConstants.NOT_FOUND.httpStatusCode
-      );
-    }
-    const bookPipeline = await BookPipelineBuilder.getBookDetailsPipeline(
-      deletebook._id
-    );
-    const bookResult = await Book.aggregate(bookPipeline);
-     await Book.findByIdAndDelete({ _id: deletebook._id })
-        return { message: "Delete Success", data: bookResult };
-  }
+      public static async approveAdmin(name: string): Promise<object> {
+        const user = await User.findOne({where:{username:name}});
+        if (!user) {
+          throw new AppError(StatusConstants.NOT_FOUND.body.message,StatusConstants.NOT_FOUND.httpStatusCode);
+        }
+        if (user.role !== Role.Author) {
+          throw new AppError(StatusConstants.UNAUTHORIZED.body.message,StatusConstants.UNAUTHORIZED.httpStatusCode);
+        }
+        const approveAdmin = await user.update({isApproved: true})
+        const result = await UserPipeline.userPipeline(approveAdmin.id)
+        return { data: result };
+      }
 
+      public static async listofPendingReq(
+        page: number,
+        pageSize: number,
+        searchQuery?: string,
+        sortBy?: string
+      ): Promise<object> {
 
+        const user = await AdminPipeline.requestPipeline(page,pageSize,searchQuery,sortBy)
+        const totalCount = (await User.findAndCountAll({where: {
+            isApproved: false,
+            role: {
+              [Op.in]: [Role.Admin, Role.Author]
+            }
+          }})).count
+        const totalPages = Math.ceil(totalCount / pageSize);
+        return {
+         users: user,
+          totalUsers: totalCount,
+          totalPages: totalPages,
+          currentPage: page,
+        };
+      }
 
+//       public static async createBook(title:string, author:string, isbn:number, categories:string[], description:string, price:number ): Promise<object> {
+//         const authid = await User.findOne({where:{ username: author }});
+//         if (!authid) {
+//           throw new AppError(StatusConstants.NOT_FOUND.body.message,StatusConstants.NOT_FOUND.httpStatusCode);
+//         }
+//         const id: number= authid.id;
+//         console.log(title)
+//         const book = await Book.create({
+//           Bookname:title,
+//           author: id,
+//           ISBN:isbn,
+//           description:description,
+//           price:price
+//         });
 
-  public static async listofPendingReq(
-    page: number,
-    pageSize: number,
-    searchQuery?: string,
-    sortBy?: string
-  ): Promise<object> {
+// console.log(book)
+//         // const fetchid = await Category.findAll({where:{name:{$in:[...categories]}}})
+//         //   const categoriesID = fetchid.map(i => i.id)
+//         //   const newCategoriesIds = categoriesID
 
-    const pipeline = await AdminPipelineBuilder.pendinRequestPipeline(page,pageSize,searchQuery,sortBy)
+//         // const bookCategoryEntries = newCategoriesIds.map(categoryId => ({
+//         //   bookId: book.id,
+//         //   categoryId: categoryId
+//         // }));
+//         // await BookCategory.bulkCreate(bookCategoryEntries);
 
-    const user = await User.aggregate(pipeline);
-    const totalCount = await Book.countDocuments({isApproved: false});
-    const totalPages = Math.ceil(totalCount / pageSize);
-    return {
-     users: user,
-      totalUsers: totalCount,
-      totalPages: totalPages,
-      currentPage: page,
-    };
-  }
+//         return { message: "Book Created", data: book };
+//       }
+
 }

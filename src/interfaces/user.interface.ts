@@ -1,17 +1,23 @@
-import { Document, Types } from 'mongoose';
-import { Role} from "../enum/imports"
-export interface UserInterface extends Document {
-    username: string;
-    email: string;
-    password: string;
-    role: Role;
-    isApproved: Boolean;
-    token?: string
+import { Optional } from "sequelize";
+import { Role } from "../enum/imports";
+
+interface UserAttributes {
+  id: number;
+  username: string;
+  email: string;
+  password: string;
+  role: Role;
+  isApproved: boolean;
+  token?: string;
 }
 
-export interface TokenPayload {
-    id: Types.ObjectId;
+interface UserCreationAttributes
+  extends Optional<UserAttributes, "id" | "token" | "role" | "isApproved"> {}
+
+interface TokenPayload {
+    id: number;
     role: string;
 }
 
 
+export { UserAttributes, UserCreationAttributes, TokenPayload };

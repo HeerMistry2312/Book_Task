@@ -1,4 +1,4 @@
-import { AdminControl, CategoryControl } from '../controller/imports';
+import { CategoryControl, AdminControl } from '../controller/imports';
 import express from "express";
 import { Authentication } from "../middleware/imports";
 
@@ -13,9 +13,9 @@ export class AdminRoute {
     private routes(): void {
         this.router.put('/approve-author/:id', Authentication.authUser,Authentication.authAdmin, AdminControl.approveAuthor)
         this.router.put('/approve-admin/:id', Authentication.authUser,Authentication.authAdmin, AdminControl.approveAdmin)
-        this.router.post('/addBook', Authentication.authUser,Authentication.authAdmin, AdminControl.createBook)
-        this.router.put('/updateBook/:id', Authentication.authUser,Authentication.authAdmin, AdminControl.updateBook)
-        this.router.delete('/deleteBook/:id', Authentication.authUser,Authentication.authAdmin, AdminControl.deleteBook)
+        //this.router.post('/addBook', Authentication.authUser,Authentication.authAdmin, AdminControl.createBook)
+        // this.router.put('/updateBook/:id', Authentication.authUser,Authentication.authAdmin, AdminControl.updateBook)
+        // this.router.delete('/deleteBook/:id', Authentication.authUser,Authentication.authAdmin, AdminControl.deleteBook)
         this.router.get('/pending', Authentication.authUser,Authentication.authAdmin, AdminControl.listofPendingReq)
 
 

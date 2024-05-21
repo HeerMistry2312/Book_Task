@@ -1,33 +1,30 @@
-import { Role } from '../enum/imports';
-import {User,Cart} from '../model/imports';
+import { Role } from "../enum/imports";
+import { User } from "../model/imports";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
-import { Types } from "mongoose";
 import { AppError } from "../utils/imports";
-import { SECRET_KEY } from "../config/imports";
 import StatusConstants from '../constant/status.constant';
-import { UserPipelineBuilder } from '../query/imports';
+import { SECRET_KEY } from "../config/imports";
+import UserPipeline from "../query/user.query";
 export default class UserService {
-
-    public static async signUp(username: string, password: string, email: string, role: Role): Promise<object> {
-        if (await User.findOne({ email })) {
-            throw new AppError(StatusConstants.CONFLICT.body.message,StatusConstants.CONFLICT.httpStatusCode);
+    public static async signUp(username: string, password: string, email: string, role: Role): Promise<object>{
+            const existingUser = await User.findOne({ where: { email } });
+        if (existingUser) {
+            throw new AppError(StatusConstants.CONFLICT.body.message, StatusConstants.CONFLICT.httpStatusCode);
         }
         const hashedPassword = await bcrypt.hash(password, 10)
-        const newUser = new User({ username, email, password: hashedPassword, role })
-        await newUser.save();
-        const userPipeline = await UserPipelineBuilder.userPipeline(newUser._id)
-        const user = await User.aggregate(userPipeline)
+        const newUser = await User.create({username,email,password:hashedPassword,role})
+        const user = await UserPipeline.userPipeline(newUser.id)
         return { message: "Sign Up Successfully", data: user };
-    }
 
+    }
 
 
     public static async login(
         username: string,
         password: string
     ): Promise<object> {
-        let user = await User.findOne({ username });
+        let user = await User.findOne({ where: { username } });
         if (!user) {
             throw new AppError(StatusConstants.NOT_FOUND.body.message,StatusConstants.NOT_FOUND.httpStatusCode);
         }
@@ -41,19 +38,18 @@ export default class UserService {
         if (!SECRET_KEY) {
             throw new AppError(StatusConstants.NOT_FOUND.body.message,StatusConstants.NOT_FOUND.httpStatusCode);
         }
-        const token = jwt.sign({ id: user._id, role: user.role }, SECRET_KEY, { expiresIn: "7h" });
+        const token = jwt.sign({ id: user.id, role: user.role }, SECRET_KEY, { expiresIn: "7h" });
         user.token = token;
         await user.save();
-        const userPipeline = await UserPipelineBuilder.userPipeline(user._id)
-        const loggesUser = await User.aggregate(userPipeline)
 
-        return { message: "login Successfully", data: loggesUser };
+        const loggedUser = await UserPipeline.userPipeline(user.id)
+
+        return { message: "login Successfully", data: loggedUser };
     }
 
 
-
-    public static async logout(id: Types.ObjectId | undefined): Promise<void> {
-        const user = await User.findById({ _id: id });
+    public static async logout(id: number | undefined): Promise<void> {
+        const user = await User.findByPk(id);
         if (!user) {
             throw new AppError(StatusConstants.UNAUTHORIZED.body.message,StatusConstants.UNAUTHORIZED.httpStatusCode);
         }
@@ -63,40 +59,21 @@ export default class UserService {
 
 
 
-    public static async editAccount(id: Types.ObjectId | undefined, name: string|undefined, email: string|undefined): Promise<object> {
-        const user = await User.findById({ _id: id });
+    public static async editAccount(id: number | undefined, name: string|undefined, email: string|undefined): Promise<object> {
+        const user = await User.findByPk(id);
         if (!user) {
             throw new AppError(StatusConstants.UNAUTHORIZED.body.message,StatusConstants.UNAUTHORIZED.httpStatusCode);
         }
-        let update = await User.findByIdAndUpdate(id, {username: name, email:email}, { new: true })
+        let update = await user.update({username: name, email:email})
         if (!update) {
             throw new AppError(StatusConstants.NOT_FOUND.body.message,StatusConstants.NOT_FOUND.httpStatusCode);
         }
-        const userPipeline = await UserPipelineBuilder.userPipeline(update._id)
-        const updatedUser = await User.aggregate(userPipeline)
-        return { message: "User Updated", updatedData: updatedUser }
+
+        const updatedData = await UserPipeline.userPipeline(update.id)
+
+        return { message: "User Updated", updatedData: updatedData }
     }
 
 
-
-
-
-    public static async deleteAccount(id: Types.ObjectId | undefined): Promise<object> {
-        const user = await User.findById({ _id: id });
-        if (!user) {
-            throw new AppError(StatusConstants.UNAUTHORIZED.body.message,StatusConstants.UNAUTHORIZED.httpStatusCode);
-        }
-        const deleteCart = await Cart.findOne({ userId: id })
-        if (!deleteCart) {
-            throw new AppError(StatusConstants.NOT_FOUND.body.message,StatusConstants.NOT_FOUND.httpStatusCode);
-        }
-        const userPipeline = await UserPipelineBuilder.userPipeline(user._id)
-        const deleteUser = await User.aggregate(userPipeline)
-        const cartPipeline = await UserPipelineBuilder.deleteCartPipeline(deleteCart._id)
-        const cartResult = await Cart.aggregate(cartPipeline)
-        await Cart.findByIdAndDelete({_id:deleteCart._id})
-        await User.findByIdAndDelete({ _id: user._id })
-        return { message: "User Deleted", deletedUserData: deleteUser, deletedCartData: cartResult }
-    }
 
 }
