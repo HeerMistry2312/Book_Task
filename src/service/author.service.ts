@@ -1,103 +1,32 @@
+import { User, Book, Category, BookCategory } from "../model/imports";
 import { AppError } from "../utils/imports";
-import { Role } from "../enum/imports";
-import { Category, User, Book, BookCategory } from "../model/imports";
 import StatusConstants from "../constant/status.constant";
-import { UserPipeline, AdminPipeline, BookPipeline } from "../query/imports";
-import { Op } from "sequelize";
-
-export class AdminService {
-  public static async approveAuthor(name: string): Promise<object> {
-    const user = await User.findOne({ where: { username: name } });
-    if (!user) {
-      throw new AppError(
-        StatusConstants.NOT_FOUND.body.message,
-        StatusConstants.NOT_FOUND.httpStatusCode
-      );
-    }
-    if (user.role !== Role.Author) {
-      throw new AppError(
-        StatusConstants.UNAUTHORIZED.body.message,
-        StatusConstants.UNAUTHORIZED.httpStatusCode
-      );
-    }
-    const approveAuthor = await user.update({ isApproved: true });
-    const result = await UserPipeline.userPipeline(approveAuthor.id);
-    return { data: result };
-  }
-
-  public static async approveAdmin(name: string): Promise<object> {
-    const user = await User.findOne({ where: { username: name } });
-    if (!user) {
-      throw new AppError(
-        StatusConstants.NOT_FOUND.body.message,
-        StatusConstants.NOT_FOUND.httpStatusCode
-      );
-    }
-    if (user.role !== Role.Author) {
-      throw new AppError(
-        StatusConstants.UNAUTHORIZED.body.message,
-        StatusConstants.UNAUTHORIZED.httpStatusCode
-      );
-    }
-    const approveAdmin = await user.update({ isApproved: true });
-    const result = await UserPipeline.userPipeline(approveAdmin.id);
-    return { data: result };
-  }
-
-  public static async listofPendingReq(
-    page: number,
-    pageSize: number,
-    searchQuery?: string,
-    sortBy?: string
-  ): Promise<object> {
-    const user = await AdminPipeline.requestPipeline(
-      page,
-      pageSize,
-      searchQuery,
-      sortBy
-    );
-    const totalCount = (
-      await User.findAndCountAll({
-        where: {
-          isApproved: false,
-          role: {
-            [Op.in]: [Role.Admin, Role.Author],
-          },
-        },
-      })
-    ).count;
-    const totalPages = Math.ceil(totalCount / pageSize);
-    return {
-      users: user,
-      totalUsers: totalCount,
-      totalPages: totalPages,
-      currentPage: page,
-    };
-  }
-
+import { BookPipeline } from "../query/imports";
+export class AuthorService {
   public static async createBook(
+    author: number,
     title: string,
-    author: string,
     isbn: number,
     categories: string[],
     description: string,
     price: number
   ): Promise<object> {
-    const authid = await User.findOne({ where: { username: author } });
+    const authid = await User.findByPk(author);
+
     if (!authid) {
       throw new AppError(
         StatusConstants.NOT_FOUND.body.message,
         StatusConstants.NOT_FOUND.httpStatusCode
       );
     }
-    const id: number = authid.id;
     const book = await Book.create({
       Bookname: title,
-      author: id,
+      author: authid.id,
       ISBN: isbn,
       description: description,
       price: price,
     });
+
     const fetchid = await Category.findAll({ where: { name: categories } });
     const categoriesID = fetchid.map((i) => i.id);
     const newCategoriesIds = categoriesID;
@@ -112,9 +41,9 @@ export class AdminService {
   }
 
   public static async updateBook(
+    author: number,
     id: string,
     title?: string,
-    author?: string,
     isbn?: number,
     categories?: string[],
     description?: string,
@@ -127,15 +56,11 @@ export class AdminService {
         StatusConstants.NOT_FOUND.httpStatusCode
       );
     }
-    if (author !== undefined) {
-      const findAuthor = await User.findOne({ where: { username: author } });
-      if (!findAuthor) {
+    if (author !== book.author) {
         throw new AppError(
-          StatusConstants.NOT_FOUND.body.message,
-          StatusConstants.NOT_FOUND.httpStatusCode
-        );
-      }
-      book.author = findAuthor.id;
+            StatusConstants.NOT_FOUND.body.message,
+            StatusConstants.NOT_FOUND.httpStatusCode
+          );
     }
     const updateBook = await book.update({
       Bookname: title ? title : book.Bookname,
@@ -161,7 +86,10 @@ export class AdminService {
     return { message: "Book Updated", data: result };
   }
 
-  public static async deleteBook(id: string): Promise<object> {
+  public static async deleteBook(
+    author: number,
+    id: string
+  ): Promise<object> {
     const deletebook = await Book.findOne({ where: { Bookname: id } });
     if (!deletebook) {
       throw new AppError(
@@ -169,9 +97,67 @@ export class AdminService {
         StatusConstants.NOT_FOUND.httpStatusCode
       );
     }
+    if (author !== deletebook.author) {
+        throw new AppError(
+            StatusConstants.UNAUTHORIZED.body.message,
+            StatusConstants.UNAUTHORIZED.httpStatusCode
+          );
+    }
     const result = await BookPipeline.bookDetailPipeline(deletebook.id);
     await BookCategory.destroy({ where: { BookId: deletebook.id } });
     await Book.destroy({ where: { id: deletebook.id } });
     return { message: "Delete Success", data: result };
+  }
+
+//   public static async showMyBooks(
+//     author: string,
+//     page: number,
+//     pageSize: number,
+//     searchQuery?: string,
+//     sortBy?: string
+//   ): Promise<object> {
+//     const bookPipeline = await BookPipelineBuilder.getAllBooksPipeline(
+//       page,
+//       pageSize,
+//       searchQuery,
+//       sortBy,
+//       author
+//     );
+//     const books = await Book.aggregate(bookPipeline);
+//     const totalCount = await Book.countDocuments({ author: author });
+//     const totalPages = Math.ceil(totalCount / pageSize);
+//     return {
+//       books: books,
+//       totalBooks: totalCount,
+//       totalPages: totalPages,
+//       currentPage: page,
+//     };
+//   }
+
+  public static async showBook(
+    author_id: number,
+    name: string
+  ): Promise<object> {
+    const book = await Book.findOne({ where: { Bookname: name } });
+    if (!book) {
+      throw new AppError(
+        StatusConstants.NOT_FOUND.body.message,
+        StatusConstants.NOT_FOUND.httpStatusCode
+      );
+    }
+    if (author_id !== book.author) {
+        throw new AppError(
+            StatusConstants.NOT_FOUND.body.message,
+            StatusConstants.NOT_FOUND.httpStatusCode
+          );
+    }
+    const result = await BookPipeline.bookDetailPipeline(
+        book.id
+      );
+      const totalCount = (await Book.findAndCountAll({where:{id:book.id}})).count
+      return {
+          result,
+        totalBooks: totalCount
+      };
   }
 }

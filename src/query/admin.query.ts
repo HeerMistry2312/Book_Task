@@ -45,44 +45,5 @@ export default class AdminPipeline {
     }
   }
 
-  public static async bookDetailPipeline(id: number): Promise<object> {
-    try {
-      const book = await Book.findByPk(id);
-      if (!book) {
-        throw new AppError(
-          StatusConstants.NOT_FOUND.body.message,
-          StatusConstants.NOT_FOUND.httpStatusCode
-        );
-      }
-      const user = await User.findByPk(book.author);
-      if (!user) {
-        throw new AppError(
-          StatusConstants.NOT_FOUND.body.message,
-          StatusConstants.NOT_FOUND.httpStatusCode
-        );
-      }
-      const categoryIds = await BookCategory.findAll({
-        where: { BookId: id },
-        attributes: ["CategoryId"],
-      });
-      const Ids = categoryIds.map((id) => (id as any).CategoryId);
-      const categories = await Category.findAll({
-        where: { id: Ids },
-      });
 
-      const categoryNames = categories.map((category) => category.name);
-
-      const data = {
-        Bookname: book.Bookname,
-        Author: user.username,
-        ISBN: book.ISBN,
-        Categories: categoryNames,
-        Description: book.description,
-        Price: book.price,
-      };
-      return data;
-    } catch (error: any) {
-      throw error;
-    }
-  }
 }
