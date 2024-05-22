@@ -1,7 +1,7 @@
 import { DataTypes,Model } from 'sequelize';
 import {sequelize} from '../config/imports'
 import { CategoryAttributes,CategoryCreationAttributes } from '../interfaces/imports';
-//import {Book,} from './imports'
+import {Book, BookCategory} from './imports'
 class Category extends Model<CategoryAttributes, CategoryCreationAttributes> implements CategoryAttributes {
     public id!: number;
     public name!: string;

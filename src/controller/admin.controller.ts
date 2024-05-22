@@ -50,15 +50,61 @@ export class AdminControl {
     }
   }
 
+  public static async createBook(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> {
+    try {
+      const { title, author, isbn, categories, description, price } = req.body;
+      let book = await AdminService.createBook(
+        title,
+        author,
+        isbn,
+        categories,
+        description,
+        price
+      );
+      res.status(StatusCode.OK).send(book);
+    } catch (error: any) {
+      next(error);
+    }
+  }
 
-//   public static async createBook(req: Request, res: Response, next: NextFunction): Promise<void> {
-//     try {
+  public static async updateBook(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> {
+    try {
+      const id = req.params.id;
+      const { title, author, isbn, categories, description, price } = req.body;
+      let update = await AdminService.updateBook(
+        id,
+        title,
+        author,
+        isbn,
+        categories,
+        description,
+        price
+      );
+      res.status(StatusCode.OK).send(update);
+    } catch (error: any) {
+      next(error);
+    }
+  }
 
-//         const {title, author,isbn, categories, description, price } = req.body
-//         let book = await AdminService.createBook(title, author, isbn, categories, description, price )
-//         res.status(StatusCode.OK).send(book)
-//     }  catch (error:any) {
-//         next(error)
-//      }
-// }
+  public static async deleteBook(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> {
+    try {
+      const id = req.params.id;
+      let book = await AdminService.deleteBook(id);
+      res.status(StatusCode.OK).send(book);
+    } catch (error: any) {
+      next(error);
+    }
+  }
 }
