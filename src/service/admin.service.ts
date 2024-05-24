@@ -170,7 +170,6 @@ export class AdminService {
       );
     }
     const result = await BookPipeline.bookDetailPipeline(deletebook.id);
-    await BookCategory.destroy({ where: { BookId: deletebook.id } });
     await Book.destroy({ where: { id: deletebook.id } });
     return { message: "Delete Success", data: result };
   }

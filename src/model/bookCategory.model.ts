@@ -1,8 +1,7 @@
 import { DataTypes, Model } from "sequelize";
 import { sequelize } from "../config/imports";
-// import { Book, Category } from "./imports";
-import Book from "./book.model";
-import Category from "./category.model";
+ import { Book, Category } from "./imports";
+
 
 class BookCategory extends Model {}
 
@@ -14,6 +13,7 @@ BookCategory.init(
         model: Book,
         key: "id",
       },
+      onDelete: 'CASCASDE'
     },
     CategoryId: {
       type: DataTypes.INTEGER,
@@ -21,6 +21,7 @@ BookCategory.init(
         model: Category,
         key: "id",
       },
+      onDelete: 'CASCASDE'
     },
   },
   {

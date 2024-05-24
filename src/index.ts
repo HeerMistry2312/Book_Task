@@ -5,7 +5,7 @@ import { SECRET_KEY } from "../src/config/imports";
 import { errorHandlerMiddleware } from "./middleware/errorHandler";
 import { AppError } from "./utils/imports";
 import StatusConstants from "./constant/status.constant";
-import { UserRoute, AdminRoute, BookRoute, AuthorRoute } from "./routes/imports";
+import { UserRoute, AdminRoute, BookRoute, AuthorRoute, CartRoute } from "./routes/imports";
 export class App {
   private app: express.Application;
 
@@ -57,12 +57,12 @@ export class App {
     const adminRoute = new AdminRoute().getRoute();
     const authorRoute = new AuthorRoute().getRoute()
     const bookRoute = new BookRoute().getRoute()
-    // const cartRoute = new CartRoute().getRoute()
+     const cartRoute = new CartRoute().getRoute()
     this.app.use("/", userRoute);
     this.app.use("/admin", adminRoute);
     this.app.use('/author', authorRoute)
     this.app.use('/book', bookRoute)
-    // this.app.use('/cart', cartRoute)
+    this.app.use('/cart', cartRoute)
   }
   public start(port: string | undefined): void {
     this.app.listen(port, () => {

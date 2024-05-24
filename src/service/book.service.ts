@@ -24,20 +24,13 @@ export class BookService {
   public static async showAllBooks(
     page: number,
     pageSize: number,
-    searchQuery?: string,
-    sortBy?: string,
+    searchQuery: string,
+    sortBy: string,
+    sortOrder: string
   ): Promise<object>{
-    // const result = BookPipeline.booksPipeline(page,pageSize,searchQuery,sortBy)
-    const result = await Book.findAll({})
-    const totalcount = (await Book.findAndCountAll()).count;
-    const totalPages = Math.ceil(totalcount / pageSize);
-console.log(result)
-    return {
-        result,
-      totalBooks: totalcount,
-      totalPages,
-      currentPage: page,
-    };
+    const result = await BookPipeline.bookPipeline(page,pageSize,searchQuery,sortBy,sortOrder)
+
+    return result
   }
 
 }

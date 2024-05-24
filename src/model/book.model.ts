@@ -1,6 +1,6 @@
 import { DataTypes, Model } from "sequelize";
 import { sequelize } from "../config/imports";
-import { User, Category} from "../model/imports";
+import { User, Category, Cart, BookCart} from "../model/imports";
 import { BookAttributes, BookCreationAttributes } from "../interfaces/imports";
 import BookCategory from "../model/bookCategory.model";
 class Book
@@ -15,6 +15,8 @@ class Book
   public price!: number;
   public readonly createdAt!: Date;
   public readonly updatedAt!: Date;
+  User: any;
+  Categories: any;
 }
 Book.init(
   {
@@ -97,4 +99,5 @@ Book.belongsTo(User, { foreignKey: "author" });
 
 Book.belongsToMany(Category,{through: BookCategory})
 Category.belongsToMany(Book,{through: BookCategory})
+
 export default Book;

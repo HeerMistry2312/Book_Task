@@ -4,7 +4,7 @@ import StatusConstants from '../constant/status.constant';
 import { Op } from "sequelize";
 
 export default class CategoryPipeline{
-    public static async CategoryPipeline(page: number, pageSize: number,searchQuery?: string, sortBy?: string):Promise<object>{
+    public static async CategoryPipeline(page: number, pageSize: number,searchQuery: string, sortBy: string):Promise<object>{
       try {
         let queryOptions: any = {
             offset: (page - 1) * pageSize,

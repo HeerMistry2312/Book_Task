@@ -7,8 +7,9 @@ export class CategoryService {
   public static async allCategories(
     page: number,
     pageSize: number,
-    searchQuery?: string,
-    sortBy?: string
+    searchQuery: string,
+    sortBy: string,
+    sortOrder: string
   ): Promise<object> {
     if (page <= 0 || !Number.isInteger(page)) {
       throw new AppError(

@@ -104,35 +104,25 @@ export class AuthorService {
           );
     }
     const result = await BookPipeline.bookDetailPipeline(deletebook.id);
-    await BookCategory.destroy({ where: { BookId: deletebook.id } });
     await Book.destroy({ where: { id: deletebook.id } });
     return { message: "Delete Success", data: result };
   }
 
-//   public static async showMyBooks(
-//     author: string,
-//     page: number,
-//     pageSize: number,
-//     searchQuery?: string,
-//     sortBy?: string
-//   ): Promise<object> {
-//     const bookPipeline = await BookPipelineBuilder.getAllBooksPipeline(
-//       page,
-//       pageSize,
-//       searchQuery,
-//       sortBy,
-//       author
-//     );
-//     const books = await Book.aggregate(bookPipeline);
-//     const totalCount = await Book.countDocuments({ author: author });
-//     const totalPages = Math.ceil(totalCount / pageSize);
-//     return {
-//       books: books,
-//       totalBooks: totalCount,
-//       totalPages: totalPages,
-//       currentPage: page,
-//     };
-//   }
+  public static async showMyBooks(
+    author: number,
+    page: number,
+    pageSize: number,
+    searchQuery: string,
+    sortBy: string,
+    sortOrder:string
+  ): Promise<object> {
+    const bookPipeline = await BookPipeline.authorBookPipeline(
+      author,page,pageSize,searchQuery,sortBy,sortOrder
+    );
+    return {
+      books: bookPipeline
+    };
+  }
 
   public static async showBook(
     author_id: number,

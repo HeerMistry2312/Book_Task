@@ -16,8 +16,8 @@ export class BookControl {
 
     public static async showAllBooks(req: Request, res: Response, next: NextFunction): Promise<void> {
         try {
-            const { page = 1, pageSize = 2, searchQuery, sortBy  } = req.query;
-            const book = await BookService.showAllBooks(+page, +pageSize, searchQuery as string, sortBy as string)
+            const { page = 1, pageSize = 2, searchQuery = '', sortBy = 'Bookname', sortOrder = 'asc' } = req.query;
+            const book = await BookService.showAllBooks(+page, +pageSize, searchQuery as string, sortBy as string, sortOrder as string)
             res.status(StatusCode.OK).send(book)
         }  catch (error:any) {
             next(error)

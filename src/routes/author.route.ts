@@ -13,7 +13,7 @@ export class AuthorRoute {
         this.router.post('/addBook', Authentication.authUser,Authentication.authAuthor, AuthorControl.createBook)
         this.router.put('/updateBook/:id', Authentication.authUser,Authentication.authAuthor, AuthorControl.updateBook)
         this.router.delete('/deleteBook/:id', Authentication.authUser,Authentication.authAuthor, AuthorControl.deleteBook)
-        //this.router.get('/myBooks', Authentication.authUser,Authentication.authAuthor, AuthorControl.showMyBooks)
+        this.router.get('/myBooks', Authentication.authUser,Authentication.authAuthor, AuthorControl.showMyBooks)
         this.router.get('/myBook/:name', Authentication.authUser,Authentication.authAuthor, AuthorControl.showBook)
     }
 

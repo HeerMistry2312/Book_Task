@@ -1,8 +1,9 @@
 import { User, Book, BookCategory, Category } from "../model/imports";
 import { AppError } from "../utils/customErrorHandler";
 import StatusConstants from "../constant/status.constant";
+import { PaginationBuilder } from "../utils/searchingSorting";
 export default class BookPipeline {
-  public static async bookDetailPipeline(id: number): Promise<object> {
+  public static async bookDetailPipeline(id: number) {
     try {
       const book = await Book.findByPk(id);
       if (!book) {
@@ -11,51 +12,176 @@ export default class BookPipeline {
           StatusConstants.NOT_FOUND.httpStatusCode
         );
       }
-      const user = await User.findByPk(book.author);
-      if (!user) {
-        throw new AppError(
-          StatusConstants.NOT_FOUND.body.message,
-          StatusConstants.NOT_FOUND.httpStatusCode
-        );
-      }
-
-      const categories = await Category.findAll({
-        attributes: ["name"],
+      const bookData = await Book.findAll({
+        where: { id: book.id },
+        attributes: ["Bookname", "ISBN", "description", "price"],
         include: [
           {
-            model: BookCategory,
-            where: { BookId: id },
-            attributes: [],
+            model: User,
+            attributes: ["username"],
+          },
+          {
+            model: Category,
+            attributes: ["name"],
+            through: {
+              attributes: [],
+            },
           },
         ],
       });
-
-      const categoryNames = categories.map((category) => category.name);
-
-      const data = {
+      const processedBooks = bookData.map((book) => ({
         Bookname: book.Bookname,
-        Author: user.username,
         ISBN: book.ISBN,
-        Categories: categoryNames,
-        Description: book.description,
-        Price: book.price,
-      };
-      return data;
+        description: book.description,
+        price: book.price,
+        author: book.User.username,
+        categories:
+          book.Categories.map(
+            (category: { name: string }) => category.name
+          ).join(", ") || "No Categories",
+      }));
+
+      return processedBooks;
     } catch (error: any) {
       throw error;
     }
   }
 
-  //   public static async booksPipeline(
-  //     page: number,
-  //     pageSize: number,
-  //     searchQuery?: string,
-  //     sortBy?: string
-  //   ): Promise<object> {
-  //     try {
+  public static async bookPipeline(
+    page: number,
+    pageSize: number,
+    searchQuery: string,
+    sortBy: string,
+    sortOrder: string
+  ) {
+    try {
+      const offset = (page - 1) * pageSize;
 
-  //     } catch (error: any) {
-  //       throw error;
-  //     }
-  //   }
+      const bookData = await Book.findAll({
+        attributes: ["Bookname", "ISBN", "description", "price"],
+        include: [
+          {
+            model: User,
+            attributes: ["username"],
+          },
+          {
+            model: Category,
+            attributes: ["name"],
+            through: {
+              attributes: [],
+            },
+          },
+        ],
+      });
+
+      const processedBooks = bookData.map((book) => ({
+        Bookname: book.Bookname,
+        ISBN: book.ISBN,
+        description: book.description,
+        price: book.price,
+        author: book.User.username,
+        categories:
+          book.Categories.map(
+            (category: { name: string }) => category.name
+          ).join(", ") || "No Categories",
+      }));
+      const filteredData = PaginationBuilder.searchingItems(
+        processedBooks,
+        searchQuery
+      );
+      const sortedData = PaginationBuilder.sortingItems(
+        filteredData,
+        sortBy,
+        sortOrder
+      );
+      const paginatedData = PaginationBuilder.paginateItems(
+        sortedData,
+        offset,
+        pageSize
+      );
+
+      return {
+        data: paginatedData,
+        totalBooks: filteredData.length,
+        totalPages: Math.ceil(filteredData.length / pageSize),
+        currentPage: page,
+      };
+    } catch (error: any) {
+      console.log(error.name)
+      console.log(error.message)
+      throw error;
+    }
+  }
+
+  public static async authorBookPipeline(
+    id: number,
+    page: number,
+    pageSize: number,
+    searchQuery: string,
+    sortBy: string,
+    sortOrder: string
+  ) {
+    try {
+      const offset = (page - 1) * pageSize;
+      const book = await Book.findAll({ where: { author: id } });
+      if (!book) {
+        throw new AppError(
+          StatusConstants.NOT_FOUND.body.message,
+          StatusConstants.NOT_FOUND.httpStatusCode
+        );
+      }
+      const bookData = await Book.findAll({
+        where: { author: id },
+        attributes: ["Bookname", "ISBN", "description", "price"],
+        include: [
+          {
+            model: User,
+            attributes: ["username"],
+          },
+          {
+            model: Category,
+            attributes: ["name"],
+            through: {
+              attributes: [],
+            },
+          },
+        ],
+      });
+      const processedBooks = bookData.map((book) => ({
+        Bookname: book.Bookname,
+        ISBN: book.ISBN,
+        description: book.description,
+        price: book.price,
+        author: book.User.username,
+        categories:
+          book.Categories.map(
+            (category: { name: string }) => category.name
+          ).join(", ") || "No Categories",
+      }));
+
+      const filteredData = PaginationBuilder.searchingItems(
+        processedBooks,
+        searchQuery
+      );
+      const sortedData = PaginationBuilder.sortingItems(
+        filteredData,
+        sortBy,
+        sortOrder
+      );
+      const paginatedData = PaginationBuilder.paginateItems(
+        sortedData,
+        offset,
+        pageSize
+      );
+
+      return {
+        data: paginatedData,
+        totalBooks: filteredData.length,
+        totalPages: Math.ceil(filteredData.length / pageSize),
+        currentPage: page,
+      };
+    } catch (error: any) {
+      throw error;
+    }
+  }
 }

@@ -75,5 +75,19 @@ export default class UserService {
     }
 
 
+    public static async deleteAccount(id: number | undefined, name: string|undefined, email: string|undefined): Promise<object> {
+        const user = await User.findByPk(id);
+        if (!user) {
+            throw new AppError(StatusConstants.UNAUTHORIZED.body.message,StatusConstants.UNAUTHORIZED.httpStatusCode);
+        }
+        let deleteUser = await User.destroy({where:{username: name, email:email}})
+        if (!deleteUser) {
+            throw new AppError(StatusConstants.NOT_FOUND.body.message,StatusConstants.NOT_FOUND.httpStatusCode);
+        }
+
+        const deleteData = await UserPipeline.userPipeline(user.id)
+
+        return { message: "User Updated", updatedData: deleteData }
+    }
 
 }

@@ -43,17 +43,17 @@ export class AuthorControl {
     }
 
 
-    // public static async showMyBooks(req: Request, res: Response, next: NextFunction): Promise<void> {
-    //     try {
-    //         const author = req.id!.toString()
-    //         const { page = 1, pageSize = 2, searchQuery, sortBy } = req.query;
-    //         const myBooks = await AuthorService.showMyBooks(author, +page, +pageSize, searchQuery as string, sortBy as string)
+    public static async showMyBooks(req: Request, res: Response, next: NextFunction): Promise<void> {
+        try {
+            const author = req.id!
+            const { page = 1, pageSize = 2, searchQuery = '', sortBy = 'Bookname', sortOrder = 'asc' } = req.query;
+            const myBooks = await AuthorService.showMyBooks(author, +page, +pageSize, searchQuery as string, sortBy as string, sortOrder as string)
 
-    //         res.status(StatusCode.OK).send(myBooks)
-    //     }  catch (error:any) {
-    //         next(error)
-    //      }
-    // }
+            res.status(StatusCode.OK).send(myBooks)
+        }  catch (error:any) {
+            next(error)
+         }
+    }
 
 
     public static async showBook(req: Request, res: Response, next: NextFunction): Promise<void> {

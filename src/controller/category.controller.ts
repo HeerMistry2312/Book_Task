@@ -5,8 +5,8 @@ import { StatusCode } from "../enum/imports"
 export class CategoryControl{
     public static async showCategories(req: Request, res: Response,next:NextFunction): Promise<void> {
         try {
-            const { page = 1, pageSize = 2, searchQuery, sortBy } = req.query;
-            const category = await CategoryService.allCategories(+page, +pageSize, searchQuery as string, sortBy as string)
+            const { page = 1, pageSize = 2, searchQuery = '', sortBy = 'name', sortOrder = 'asc' } = req.query;
+            const category = await CategoryService.allCategories(+page, +pageSize, searchQuery as string, sortBy as string,sortOrder as string)
             res.status(StatusCode.OK).send(category)
 
         } catch (error:any) {

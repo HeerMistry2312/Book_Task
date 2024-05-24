@@ -1,16 +1,28 @@
 import { DataTypes, Model } from "sequelize";
 import { sequelize } from "../config/imports";
-import { Book,Cart } from "./imports";
+import { Book,Cart, User } from "./imports";
 
-class BookCart extends Model {}
+class BookCart extends Model {
+    Quantity!: number;
+    TotalPrice!: number;
+}
 
 BookCart.init(
   {
     CartId: {
       type: DataTypes.INTEGER,
+      references: {
+        model: Cart,
+        key: "id",
+      },
+      onDelete: 'CASCASDE'
     },
     BookId: {
       type: DataTypes.INTEGER,
+      references: {
+        model: Book,
+        key: "id",
+      },
     },
     Quantity:{
         type: DataTypes.INTEGER,
@@ -24,6 +36,8 @@ BookCart.init(
     modelName: "BookCart",
   }
 );
-BookCart.belongsTo(Cart, { foreignKey: 'CartId' });
-Cart.hasMany(BookCart, { foreignKey: 'CategoryId' });
+Book.belongsToMany(Cart, { through: BookCart });
+Cart.belongsToMany(Book, { through: BookCart });
+
+
 export default BookCart;
