@@ -116,8 +116,6 @@ export class CartService {
     }
 
 
-
-
     public static async downloadFile(id: string): Promise<string> {
     const cart = await Cart.findOne({ userId: id }).populate('books.book');
     if (!cart) {

@@ -12,6 +12,7 @@ export class Authentication {
         res: Response,
         next: NextFunction
     ): Promise<void> {
+
         try {
             let token = req.header("Authorization");
             if (!token) {
